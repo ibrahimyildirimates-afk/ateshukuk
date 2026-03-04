@@ -100,7 +100,7 @@ YAZI KURALLARI:
 
 def html_olustur(data: dict, kategori: str, slug: str, tarih: datetime.date) -> str:
     bolumler_html = ""
-    for b in data["bolumlер"]:
+    for b in data["bolumlеr"]:
         bolumler_html += f'\n                        <h2 id="{b["id"]}">{b["baslik"]}</h2>\n'
         bolumler_html += f'                        {b["icerik"]}\n'
 
