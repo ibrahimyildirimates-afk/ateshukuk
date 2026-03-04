@@ -1,0 +1,41 @@
+name: Otomatik Blog Üretici — Ateş Hukuk
+
+on:
+  schedule:
+    # Her Pazartesi, Çarşamba ve Cuma sabah 08:00 (TR saati = 05:00 UTC)
+    - cron: "0 5 * * 1,3,5"
+  workflow_dispatch: # Elle de çalıştırabilirsin
+
+jobs:
+  blog-uret:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodu çek
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Python kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Bağımlılıkları yükle
+        run: pip install anthropic
+
+      - name: Blog üret
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python generate_blog.py
+
+      - name: Git ayarla
+        run: |
+          git config user.name "Ateş Hukuk Blog Bot"
+          git config user.email "bot@noreply.com"
+
+      - name: Değişiklikleri kaydet ve yükle
+        run: |
+          git add blog/ index.html
+          git diff --staged --quiet || git commit -m "🤖 Yeni blog: $(date +'%Y-%m-%d')"
+          git push
