@@ -52,6 +52,35 @@ def okuma_suresi(html: str) -> int:
     kelimeler = len(temiz.split())
     return max(3, round(kelimeler / 200))
 
+
+# ── Web search ile güncel konu bul ───────────────────────────────────────────
+
+def guncel_konu_bul() -> dict:
+    """Web search ile güncel Türk hukuk haberi bulur, konu ve kategori döner."""
+    client = anthropic.Anthropic()
+    try:
+        mesaj = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=500,
+            tools=[{"type": "web_search_20250305", "name": "web_search"}],
+            system="""Türkiye'deki güncel hukuk haberlerini ara.
+Yanıtını YALNIZCA şu JSON formatında ver (başka hiçbir şey yazma):
+{"konu": "habere dayalı blog konusu", "kategori": "Ceza Hukuku veya Aile Hukuku veya İş Hukuku veya Gayrimenkul Hukuku veya Miras Hukuku veya Ticaret Hukuku veya İcra Hukuku veya Tazminat Hukuku"}""",
+            messages=[{"role": "user", "content": "Türkiye güncel hukuk haberleri Yargıtay kararları 2026 - en ilginç ve vatandaşları etkileyen konuyu seç ve JSON döndür"}],
+        )
+        raw = ""
+        for block in mesaj.content:
+            if hasattr(block, "text"):
+                raw += block.text
+        raw = raw.strip()
+        raw = re.sub(r"^```json\s*|^```\s*|```$", "", raw, flags=re.MULTILINE).strip()
+        data = json.loads(raw)
+        print(f"🌐 Güncel konu bulundu: {data['konu']} ({data['kategori']})")
+        return data
+    except Exception as e:
+        print(f"⚠️  Web search başarısız ({e}), listeden konu seçiliyor...")
+        return random.choice(KONULAR)
+
 # ── Claude API çağrısı ────────────────────────────────────────────────────────
 
 def blog_uret(konu: str, kategori: str) -> dict:
@@ -412,8 +441,8 @@ def index_guncelle(index_yolu: str, data: dict, kategori: str, slug: str):
 # ── Ana akış ─────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    # Rastgele konu seç
-    secim = random.choice(KONULAR)
+    # Web'den güncel konu bul
+    secim = guncel_konu_bul()
     konu = secim["konu"]
     kategori = secim["kategori"]
     print(f"📝 Konu: {konu} ({kategori})")
