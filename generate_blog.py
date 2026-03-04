@@ -67,7 +67,7 @@ KURAL:
   "baslik": "60 karakter altı başlık",
   "ozet": "150-160 karakter SEO özeti",
   "keywords": "5-7 adet virgülle ayrılmış anahtar kelime",
-  "bolumlер": [
+  "bolumler": [
     { "id": "bolum-slug", "baslik": "Bölüm Başlığı", "icerik": "<p>...</p><ul>...</ul> formatında HTML" }
   ],
   "sss": [
@@ -100,13 +100,13 @@ YAZI KURALLARI:
 
 def html_olustur(data: dict, kategori: str, slug: str, tarih: datetime.date) -> str:
     bolumler_html = ""
-    for b in data["bolumlеr"]:
+    for b in data["bolumler"]:
         bolumler_html += f'\n                        <h2 id="{b["id"]}">{b["baslik"]}</h2>\n'
         bolumler_html += f'                        {b["icerik"]}\n'
 
     toc_links = ""
     mobil_toc = ""
-    for b in data["bolumlер"]:
+    for b in data["bolumler"]:
         toc_links += f'                                <a href="#{b["id"]}">{b["baslik"]}</a>\n'
         mobil_toc += f'                            <a href="#{b["id"]}" class="block text-sm text-gray-600 hover:text-ates-gold py-1">{b["baslik"]}</a>\n'
 
