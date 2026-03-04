@@ -398,15 +398,20 @@ def index_guncelle(index_yolu: str, data: dict, kategori: str, slug: str):
                     <a href="/blog/{slug}.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
                 </div>"""
 
-    # Grid kapanışından önce ekle
-    isaretci = '</div>\n        </div>\n    </section>'
-    if isaretci in icerik:
-        yeni_icerik = icerik.replace(isaretci, yeni_kart + "\n            " + isaretci)
+    # Sadece blog section içindeki grid'e ekle
+    # Blog section'ı id="blog" ile bulup sadece oradaki grid kapanışını hedef al
+    import re
+    blog_section_pattern = r'(id="blog".*?)(</div>\s*</div>\s*</section>)'
+    match = re.search(blog_section_pattern, icerik, re.DOTALL)
+    if match:
+        eski = match.group(0)
+        yeni = match.group(1) + yeni_kart + "\n            " + match.group(2)
+        yeni_icerik = icerik.replace(eski, yeni, 1)
         with open(index_yolu, "w", encoding="utf-8") as f:
             f.write(yeni_icerik)
-        print(f"✅ index.html güncellendi — yeni kart eklendi.")
+        print(f"✅ index.html güncellendi — yeni kart blog section'a eklendi.")
     else:
-        print("⚠️  index.html'de blog grid işaretçisi bulunamadı, kart eklenemedi.")
+        print("⚠️  index.html'de blog section bulunamadı, kart eklenemedi.")
 
 # ── Ana akış ─────────────────────────────────────────────────────────────────
 
