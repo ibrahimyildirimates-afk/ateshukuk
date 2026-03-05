@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>İstanbul Boşanma Avukatı | Ateş Hukuk Bürosu</title>
+    <meta name="description" content="Boşanma davası nasıl açılır? Boşanma sebepleri, nafaka, tazminat, velayet ve mal paylaşımı hakkında detaylı hukuki rehber.">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'ates-navy': '#001f3f',
+                        'ates-gold': '#C5A065',
+                    },
+                    fontFamily: {
+                        'heading': ['Playfair Display', 'serif'],
+                        'body': ['Montserrat', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Montserrat', sans-serif; scroll-behavior: smooth; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Playfair Display', serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-ates-navy">
+
+    <header class="bg-ates-navy text-white py-4 sticky top-0 z-50 shadow-2xl border-b border-ates-gold/30">
+        <div class="container mx-auto px-6 flex items-center justify-between">
+            <a href="/index.html" class="flex flex-col border-l-4 border-ates-gold pl-4 hover:opacity-80 transition">
+                <span class="text-2xl font-bold tracking-tighter leading-none uppercase">Ateş Hukuk</span>
+                <span class="text-[10px] tracking-[0.3em] text-ates-gold uppercase mt-1 font-bold">Bürosu • Kuruluş: 1969</span>
+            </a>
+            <nav class="hidden lg:flex space-x-8 text-xs font-semibold uppercase tracking-widest">
+                <a href="/index.html" class="hover:text-ates-gold transition">Ana Sayfa</a>
+                <a href="/index.html#hizmetlerimiz" class="hover:text-ates-gold transition">Hizmetlerimiz</a>
+                <a href="/index.html#blog" class="text-ates-gold transition">Hukuki Blog</a>
+                <a href="/index.html#iletisim" class="bg-ates-gold text-white px-6 py-2 rounded hover:bg-white hover:text-ates-navy transition shadow-lg">İletişim</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="relative bg-ates-navy py-24 flex items-center overflow-hidden border-b-4 border-ates-gold">
+        <div class="absolute inset-0 opacity-10 bg-[url('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=1470')] bg-cover bg-center"></div>
+        <div class="container mx-auto px-6 relative z-10 text-center text-white">
+            <span class="text-ates-gold font-bold tracking-[0.4em] uppercase text-xs mb-4 block">Aile Hukuku Makaleleri</span>
+            <h1 class="text-4xl md:text-5xl font-bold font-heading mb-6 max-w-4xl mx-auto leading-tight">İstanbul Boşanma Avukatı ve Boşanma Davası Rehberi</h1>
+            <p class="text-gray-300 italic">Boşanma davası süreçleri, nafaka, velayet ve mal rejimine dair bilinmesi gerekenler.</p>
+        </div>
+    </section>
+
+    <main class="container mx-auto px-6 py-16 flex justify-center">
+        <article class="w-full max-w-4xl bg-white p-8 md:p-16 shadow-2xl border-t border-gray-100 rounded-sm">
+            
+            <div class="bg-ates-navy/5 p-8 rounded mb-12">
+                <p class="font-bold text-xl text-ates-navy mb-4 font-heading border-b border-ates-gold/30 pb-2">Makale İçeriği:</p>
+                <ol class="list-decimal list-outside ml-6 space-y-2 text-ates-navy font-semibold text-sm">
+                    <li><a href="#giris" class="hover:text-ates-gold transition">Boşanma Davalarına Kısa Bir Giriş</a></li>
+                    <li><a href="#nasil-acilir" class="hover:text-ates-gold transition">Boşanma Davası Nasıl Açılır?</a></li>
+                    <li><a href="#sebepler" class="hover:text-ates-gold transition">Boşanma Sebepleri Nelerdir?</a></li>
+                    <li><a href="#deliller" class="hover:text-ates-gold transition">Boşanma Davasında Kullanılabilecek Deliller Nelerdir?</a></li>
+                    <li><a href="#yetkili-mahkeme" class="hover:text-ates-gold transition">Boşanma Davasında Yetkili ve Görevli Mahkeme</a></li>
+                    <li><a href="#kadinin-durumu" class="hover:text-ates-gold transition">Boşanan Kadının Kişisel Durumu</a></li>
+                    <li><a href="#iddet-suresi" class="hover:text-ates-gold transition">İddet Süresi Nedir?</a></li>
+                    <li><a href="#tazminat" class="hover:text-ates-gold transition">Boşanma Sonucunda Maddi ve Manevi Tazminat</a></li>
+                    <li><a href="#yoksulluk-nafakasi" class="hover:text-ates-gold transition">Yoksulluk Nafakası Nedir?</a></li>
+                    <li><a href="#istirak-nafakasi" class="hover:text-ates-gold transition">İştirak Nafakası Nedir?</a></li>
+                    <li><a href="#tedbir-nafakasi" class="hover:text-ates-gold transition">Boşanma Davalarında Tedbir Nafakası</a></li>
+                    <li><a href="#nafaka-davasi" class="hover:text-ates-gold transition">Nafaka Davası</a></li>
+                    <li><a href="#ziynet-esyalari" class="hover:text-ates-gold transition">Boşanmada Ziynet Eşyaları (Düğün Takıları)</a></li>
+                    <li><a href="#mal-paylasimi" class="hover:text-ates-gold transition">Boşanma Sonucunda Malların Tasfiyesi</a></li>
+                    <li><a href="#velayet" class="hover:text-ates-gold transition">Çocuğun Velayetinin Düzenlenmesi</a></li>
+                    <li><a href="#anlasmali-bosanma" class="hover:text-ates-gold transition">Anlaşmalı Boşanma / Çekişmesiz Boşanma</a></li>
+                    <li><a href="#tedbir-karari" class="hover:text-ates-gold transition">Koruyucu ve Önleyici Tedbir Kararı</a></li>
+                </ol>
+            </div>
+
+            <h2 id="giris" class="text-3xl font-bold text-ates-navy mt-12 mb-6 font-heading border-b border-gray-200 pb-2">Boşanma Davalarına Kısa Bir Giriş</h2>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Evlilik birliğini sona erdiren haller: ölüm, gaiplik, cinsiyet değişikliği ve boşanmadır. Boşanma, eşler arasındaki evlilik birliğinin, her iki taraf ya da taraflardan birinin talebiyle ve yasal yollarla sona erdirilmesidir. Boşanma davalarında, toplumun temel yapı taşlarından olan aile kurumunu ilgilendirdiği için aile mahkemesi hakimine geniş yetkiler tanınmıştır. Dolayısıyla kimi zaman yalnızca tarafların boşanma iradesi göstermesi, boşanma kararı verilmesi için yeterli olamayabilmektedir.</p>
+
+            <h2 id="nasil-acilir" class="text-3xl font-bold text-ates-navy mt-12 mb-6 font-heading border-b border-gray-200 pb-2">Boşanma Davası Nasıl Açılır?</h2>
+            
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Boşanma davasının açılabilmesi için eşler kendi aralarında anlaşarak mahkemeye başvurabilecekleri gibi eşlerden biri dava dilekçesiyle birlikte mahkemeye çekişmeli boşanma talebi ile başvurarak dava açabilmektedir. Ancak boşanmanın çeşitli haklar açısından geri dönülmez kayıplar yaşattığı göz önüne alınırsa, bir avukatın profesyonel yardımından faydalanılmasını ve vekil ile birlikte hareket edilmesini önermekteyiz. <a href="/index.html#iletisim" class="text-ates-gold hover:text-ates-navy underline font-semibold transition duration-300">İstanbul boşanma avukatı</a> ekibimizle iletişime geçip profesyonel hukuki destek alabilirsiniz.</p>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Bu makalemiz genel olarak boşanma davalarında ileri sürülebilecek ve boşanmanın ferileri olarak adlandırılan hususlara ilişkindir.</p>
+
+            <h2 id="sebepler" class="text-3xl font-bold text-ates-navy mt-12 mb-6 font-heading border-b border-gray-200 pb-2">Boşanma Sebepleri Nelerdir?</h2>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Boşanma sebepleri genel ve özel sebepler olarak ikiye ayrılır.</p>
+
+            <h3 class="text-2xl font-bold text-ates-navy mt-8 mb-4 font-heading">a) Özel Boşanma Sebepleri</h3>
+            <ul class="list-disc list-outside ml-6 text-gray-700 mb-6 space-y-2 text-lg marker:text-ates-gold">
+                <li><strong class="text-ates-navy">Zina (Aldatma)</strong> Sebebiyle Boşanma,</li>
+                <li><strong class="text-ates-navy">Hayata Kast/Pek Kötü Muamele/Onur Kırıcı Davranış</strong> Sebebiyle Boşanma,</li>
+                <li><strong class="text-ates-navy">Suç İşleme ve Haysiyetsiz Hayat Sürme</strong> Sebebiyle Boşanma,</li>
+                <li><strong class="text-ates-navy">Terk</strong> Sebebiyle Boşanma,</li>
+                <li><strong class="text-ates-navy">Akıl Hastalığı</strong> Sebebiyle Boşanma olarak düzenlenmiştir.</li>
+            </ul>
+
+            <h3 class="text-2xl font-bold text-ates-navy mt-8 mb-4 font-heading">b) Genel Boşanma Sebepleri</h3>
+            <ul class="list-disc list-outside ml-6 text-gray-700 mb-6 space-y-2 text-lg marker:text-ates-gold">
+                <li><strong class="text-ates-navy">Evlilik Birliğinin Temelinden Sarsılması</strong> Sebebiyle Boşanma ve</li>
+                <li><strong class="text-ates-navy">Anlaşmalı Boşanma</strong> Davalarıdır.</li>
+            </ul>
+
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Boşanma davası; çekişmeli boşanma davası ve çekişmesiz/anlaşmalı boşanma davası olarak ikiye ayrılır. Çekişmesiz boşanma davası genel boşanma sebeplerinden anlaşmalı boşanma davasıdır.</p>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Anlaşmalı/çekişmesiz boşanma, tarafların aralarında anlaşıp bir boşanma protokolü hazırlamaları ve bu protokolü boşanma talepleriyle birlikte mahkemeye sunmalarıyla gerçekleşebileceği gibi, taraflardan birinin açmış olduğu boşanma davasını diğerinin kabul etmesiyle de gerçekleşebilir.</p>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Çekişmeli boşanma davalarında ise ortada boşanma veya nafaka, tazminat, velayet gibi boşanmanın ferilerine ilişkin olarak taraflar arasında mevcut bir uyuşmazlık yani çekişmeli bir durum mevcuttur. Taraflardan birinin açmış olduğu boşanma davasını diğer tarafın kabul etmemesi, karşı dava açması hallerinde söz konusu olur.</p>
+
+            <h2 id="deliller" class="text-3xl font-bold text-ates-navy mt-12 mb-6 font-heading border-b border-gray-200 pb-2">Boşanma Davasında Kullanılabilecek Deliller Nelerdir?</h2>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Boşanma davalarında deliller genel olarak; tanık beyanı, sosyal medya yazışmaları, taraflarca dayanılmış ise telefon arama ve kısa mesaj kayıtları (ilgili GSM operatörüne mahkeme tarafından yazılacak müzekkere ile dosya muhteviyatına kazandırılabilmektedir), kolluğa yazılacak sosyal ve ekonomik durum araştırmaları, maaş bordroları, sağlık raporları, banka dökümleri, bilirkişi raporları ve hukuka uygun nitelikte olan her türlü diğer delillerdir.</p>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Ses ve görüntü kayıtlarının boşanma davasında delil olarak gösterilmesi hususunda Yargıtay'ın çeşitli kararları mevcuttur. Ancak bu kayıtların neyi kapsadığı ve ne şekilde elde edildiği hususu ayrıca dikkate alınmalıdır. Özel hayatın gizliliğini ihlal suçuna vücut verebilmektedir. Haliyle bu tip tartışmalı delillerin her somut olay özelinde ayrı ayrı değerlendirilmesi gerekmektedir. Boşanma davalarındaki bu ve benzeri nedenler ile hak kayıpları yaşanmaması adına avukat profesyonel desteği ile sürecin yürütülmesi tavsiyemizi yinelemekteyiz. Detaylı bilgi ve iletişim için ofisimizle iletişime geçebilirsiniz: <a href="tel:+905326021201" class="font-bold text-ates-gold hover:underline">0532 602 12 01</a>.</p>
+
+            <h2 id="yetkili-mahkeme" class="text-3xl font-bold text-ates-navy mt-12 mb-6 font-heading border-b border-gray-200 pb-2">Boşanma Davasında Yetkili ve Görevli Mahkeme</h2>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Anlaşmalı boşanma davalarında da çekişmeli boşanma davalarında da <strong>görevli mahkeme Aile Mahkemesidir.</strong></p>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Çekişmeli boşanma davası yetki bakımından:</p>
+            <ul class="list-disc list-outside ml-6 text-gray-700 mb-6 space-y-2 text-lg marker:text-ates-gold">
+                <li>Davalı tarafın yerleşim yeri aile mahkemesinde,</li>
+                <li>Davacı tarafın yerleşim yeri aile mahkemesinde ve</li>
+                <li>Boşanmak isteyen eşlerin son 6 aydan beri ikamet ettikleri yerdeki aile mahkemesinde açılabilmektedir.</li>
+            </ul>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Anlaşmalı boşanma davalarında ise taraflar tüm hususlarda önceden anlaşma sağlamış olacaklarından yetki sorunu yaşanmaz. Bu nedenle anlaşmalı boşanma davaları tarafların istediği yer aile mahkemesinde açılabilir.</p>
+
+            <h2 id="kadinin-durumu" class="text-3xl font-bold text-ates-navy mt-12 mb-6 font-heading border-b border-gray-200 pb-2">Boşanan Kadının Kişisel Durumu</h2>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Boşanma hâlinde kadın, evlenme ile kazandığı kişisel durumunu korur; ancak, evlenmeden önceki soyadını yeniden alır. Kadının, boşandığı kocasının soyadını kullanmakta menfaati bulunduğu ve bunun kocaya bir zarar vermeyeceği ispatlanırsa, istemi üzerine hâkim, kocasının soyadını taşımasına izin verir.</p>
+
+            <h2 id="iddet-suresi" class="text-3xl font-bold text-ates-navy mt-12 mb-6 font-heading border-b border-gray-200 pb-2">İddet Süresi Nedir? Ne Zaman Biter?</h2>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify"><strong>İddet süresi (iddet müddeti)</strong>; kadının boşanma kararının kesinleşmesinden itibaren üç yüz gün boyunca biriyle evlenmek için beklemesi gereken süredir. İddet süresi üç yüz günün sonunda kendiliğinden biter veya kadının hamile olmadığına dair rapor sunmasıyla da mahkemece kaldırılabilir.</p>
+
+            <h2 id="tazminat" class="text-3xl font-bold text-ates-navy mt-12 mb-6 font-heading border-b border-gray-200 pb-2">Boşanma Sonucunda Maddi ve Manevi Tazminat</h2>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Mevcut veya beklenen menfaatleri boşanma yüzünden zedelenen kusursuz veya daha az kusurlu olan eş, kusurlu taraftan uygun bir maddî tazminat isteyebilir. Boşanmaya sebep olan olaylar yüzünden kişilik hakkı saldırıya uğrayan taraf, manevî tazminat da isteyebilir. Maddi tazminat taksit halinde ödenebilirken, manevi tazminat tek seferde toptan ödenmek zorundadır.</p>
+
+            <h2 id="yoksulluk-nafakasi" class="text-3xl font-bold text-ates-navy mt-12 mb-6 font-heading border-b border-gray-200 pb-2">Yoksulluk Nafakası Nedir?</h2>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Boşanma yüzünden yoksulluğa düşecek taraf, kusuru daha ağır olmamak koşuluyla geçimi için diğer taraftan malî gücü oranında süresiz olarak nafaka isteyebilir. Nafaka yükümlüsünün kusuru aranmaz. Yeniden evlenme veya yoksulluğun ortadan kalkması durumunda bu nafaka kesilebilir.</p>
+
+            <h2 id="istirak-nafakasi" class="text-3xl font-bold text-ates-navy mt-12 mb-6 font-heading border-b border-gray-200 pb-2">İştirak Nafakası Nedir?</h2>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">İştirak nafakası kısaca; velayet hakkı kendisine bırakılmayan eşin velayet hakkı verilen eşe çocuğun bakımı ve eğitim için giderleri için mali gücü oranında yaptığı katkıdır.</p>
+
+            <h2 id="tedbir-nafakasi" class="text-3xl font-bold text-ates-navy mt-12 mb-6 font-heading border-b border-gray-200 pb-2">Boşanma Davalarında Tedbir Nafakası</h2>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Boşanma davası sürerken bakıma muhtaç olan eş kendisi ve çocukları için tedbir nafakası talep edebilir. Tedbir nafakası boşanmanın kesinleşmesiyle birlikte kendiliğinden ortadan kalkar ve niteliğine göre yoksulluk ya da iştirak nafakasına dönüşür.</p>
+
+            <h2 id="nafaka-davasi" class="text-3xl font-bold text-ates-navy mt-12 mb-6 font-heading border-b border-gray-200 pb-2">Nafaka Davası</h2>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Evliliğin boşanma sebebiyle sona ermesinden doğan dava hakları, boşanma hükmünün kesinleşmesinin üzerinden bir yıl geçmekle zamanaşımına uğrar. Bu nedenle boşanma davası ile talep edilmemiş olan nafakalar kesinleşmeden sonraki 1 yıl içinde ayrı bir dava ile istenebilir.</p>
+
+            <h2 id="ziynet-esyalari" class="text-3xl font-bold text-ates-navy mt-12 mb-6 font-heading border-b border-gray-200 pb-2">Boşanmada Ziynet Eşyaları (Düğün Takıları)</h2>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Ziynet eşyaları, boşanma davası ile birlikte talep edilebileceği gibi, bağımsız bir şekilde ayrı bir dava olarak da açılabilecektir. Güncel Yargıtay kararlarına göre erkeğe takılmış olan ve kadına özgü olmayan takılar erkeğe ait kabul edilebilmektedir. Durumun somut özelliklerine göre hukuki destek almak önemlidir.</p>
+
+            <h2 id="mal-paylasimi" class="text-3xl font-bold text-ates-navy mt-12 mb-6 font-heading border-b border-gray-200 pb-2">Boşanma Sonucunda Malların Tasfiyesi</h2>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Eşlerin evlilik birliği içerisinde edindikleri ev, araba vb. malvarlığı değerlerinin eşler arasında paylaşımı olarak ifade edebileceğimiz mal paylaşımı davaları, boşanma davasından ayrı olarak görülen davalardır ve boşanmanın kesinleşmesi bu dava için bekletici mesele yapılır.</p>
+
+            <h2 id="velayet" class="text-3xl font-bold text-ates-navy mt-12 mb-6 font-heading border-b border-gray-200 pb-2">Çocuğun Velayetinin Düzenlenmesi</h2>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Evlilik birliği içerisinde çocuğun velayeti ortaktır. Boşanma sonrasında çocuğun velayetini eşlerden biri alabildiği gibi, güncel hukuk sistemimizde ortak velayet de uygulanabilmektedir. Hakim çocuğun üstün yararını gözeterek velayet hakkına sahip olacak olan eşi belirler ve diğer eş ile çocuk arasında kişisel ilişki günleri tayin eder.</p>
+
+            <h2 id="anlasmali-bosanma" class="text-3xl font-bold text-ates-navy mt-12 mb-6 font-heading border-b border-gray-200 pb-2">Anlaşmalı Boşanma/Çekişmesiz Boşanma</h2>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Tarafların anlaşmalı boşanabilmeleri için aşağıdaki şartların gerçekleşmesi gerekmektedir:</p>
+            <ul class="list-disc list-outside ml-6 text-gray-700 mb-6 space-y-2 text-lg marker:text-ates-gold">
+                <li>Evlilik en az bir yıl sürmüş olmalı,</li>
+                <li>Eşler mahkemeye birlikte başvurmuş olmalı ya da bir eşin açtığı davayı diğer eş kabul etmeli,</li>
+                <li>Hakim tarafları bizzat dinlemeli ve iradelerinin serbestçe açıklandığını tespit etmeli,</li>
+                <li>Taraflar boşanmanın tüm hukuki ve mali sonuçlarında (nafaka, velayet, tazminat) uzlaşmış ve bunu protokole dökmüş olmalıdır.</li>
+            </ul>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Boşanma davaları kişileri oldukça yıpratabilen süreçler olduğundan, anlaşmalı boşanma prosedürünü tavsiye ediyoruz. Ateş Hukuk Bürosu olarak, taraf iradelerine uygun bir şekilde boşanma protokolünüzü hazırlıyor ve süreci hızlıca yönetiyoruz.</p>
+
+            <h2 id="tedbir-karari" class="text-3xl font-bold text-ates-navy mt-12 mb-6 font-heading border-b border-gray-200 pb-2">Koruyucu ve Önleyici Tedbir Kararı</h2>
+            <p class="text-gray-700 leading-relaxed mb-6 text-lg text-justify">Boşanmak isteyen çiftler arasında fiziksel veya psikolojik şiddet riski varsa, 6284 sayılı Ailenin Korunması ve Kadına Karşı Şiddetin Önlenmesine Dair Kanun uyarınca koruma ve uzaklaştırma (önleyici tedbir) kararları talep edilebilir. Bu kanun uyarınca fiziksel, psikolojik ve ekonomik şiddet mağdurları lehine koruyucu önlemler derhal alınmaktadır.</p>
+            
+        </article>
+    </main>
+
+    <footer class="bg-ates-navy text-white pt-20 pb-10 border-t border-gray-800">
+        <div class="container mx-auto px-6 grid md:grid-cols-3 gap-16 text-sm pb-16 border-b border-gray-800">
+            <div>
+                <h4 class="text-3xl font-bold mb-6 tracking-tighter font-heading uppercase">ATEŞ HUKUK</h4>
+                <p class="text-gray-400 leading-relaxed italic text-lg">"1969'dan bugüne, hak ve adaletin izinde yarım asrı geride bıraktık."</p>
+            </div>
+            <div>
+                <h4 class="text-ates-gold font-bold mb-6 uppercase tracking-widest font-heading">İletişim</h4>
+                <p>Kartal / İstanbul</p>
+                <a href="tel:+905326021201" class="text-xl font-bold mt-4 block text-white hover:text-ates-gold transition">0532 602 12 01</a>
+                <a href="mailto:ibrahimyildirimates@gmail.com" class="hover:text-ates-gold transition">ibrahimyildirimates@gmail.com</a>
+            </div>
+            <div>
+                <h4 class="text-ates-gold font-bold mb-6 uppercase tracking-widest font-heading">Hızlı Linkler</h4>
+                <ul class="space-y-3 uppercase text-[10px] tracking-[0.2em]">
+                    <li><a href="/index.html#hakkimizda" class="hover:text-ates-gold transition">Kurumsal</a></li>
+                    <li><a href="/index.html#hizmetlerimiz" class="hover:text-ates-gold transition">Faaliyet Alanları</a></li>
+                    <li><a href="/index.html#blog" class="hover:text-ates-gold transition">Hukuki Blog</a></li>
+                    <li><a href="/index.html#iletisim" class="hover:text-ates-gold transition">İletişim</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="text-center mt-12 text-gray-500 text-xs">
+            © 2026 Ateş Hukuk Bürosu. Tüm hakları saklıdır.
+        </div>
+    </footer>
+</body>
+</html>
