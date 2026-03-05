@@ -53,20 +53,52 @@ def okuma_suresi(html: str) -> int:
     return max(3, round(kelimeler / 200))
 
 
+# ── Mevcut blogları listele ──────────────────────────────────────────────────
+
+def mevcut_blog_konulari() -> list:
+    """blog/ klasöründeki mevcut HTML dosyalarının başlıklarını okur."""
+    konular = []
+    if not os.path.exists("blog"):
+        return konular
+    for dosya in os.listdir("blog"):
+        if dosya.endswith(".html") and dosya != "blog-sablon.html":
+            yol = os.path.join("blog", dosya)
+            try:
+                with open(yol, "r", encoding="utf-8") as f:
+                    icerik = f.read()
+                title_match = re.search(r"<title>(.*?)</title>", icerik)
+                if title_match:
+                    baslik = title_match.group(1).replace(" | Ateş Hukuk Bürosu İstanbul & İzmir", "").strip()
+                    konular.append(baslik.lower())
+            except:
+                pass
+    return konular
+
 # ── Web search ile güncel konu bul ───────────────────────────────────────────
 
 def guncel_konu_bul() -> dict:
-    """Web search ile güncel Türk hukuk haberi bulur, konu ve kategori döner."""
+    """Web search ile güncel Türk hukuk haberi bulur.
+    Mevcut bloglarla çakışıyorsa listeden rastgele konu seçer.
+    %20 ihtimalle Yargıtay içtihadı formatında blog üretir."""
     client = anthropic.Anthropic()
+
+    mevcut = mevcut_blog_konulari()
+    print(f"📂 Mevcut blog sayısı: {len(mevcut)}")
+
+    # %20 ihtimalle Yargıtay içtihadı
+    if random.random() < 0.20:
+        print("⚖️  Yargıtay içtihadı modu seçildi!")
+        return {"konu": "YARGITAY_ICTIHAT", "kategori": "Yargıtay Kararları"}
+
     try:
         mesaj = client.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=500,
+            max_tokens=600,
             tools=[{"type": "web_search_20250305", "name": "web_search"}],
-            system="""Türkiye'deki güncel hukuk haberlerini ara.
+            system="""Türkiye güncel hukuk haberlerini ara.
 Yanıtını YALNIZCA şu JSON formatında ver (başka hiçbir şey yazma):
-{"konu": "habere dayalı blog konusu", "kategori": "Ceza Hukuku veya Aile Hukuku veya İş Hukuku veya Gayrimenkul Hukuku veya Miras Hukuku veya Ticaret Hukuku veya İcra Hukuku veya Tazminat Hukuku"}""",
-            messages=[{"role": "user", "content": "Türkiye güncel hukuk haberleri Yargıtay kararları 2026 - en ilginç ve vatandaşları etkileyen konuyu seç ve JSON döndür"}],
+{"konu": "blog konusu (somut ve spesifik olsun)", "kategori": "Ceza Hukuku veya Aile Hukuku veya İş Hukuku veya Gayrimenkul Hukuku veya Miras Hukuku veya Ticaret Hukuku veya İcra Hukuku veya Tazminat Hukuku veya Yargıtay Kararları"}""",
+            messages=[{"role": "user", "content": "Türkiye hukuk haberleri Yargıtay kararları 2026 - vatandaşları en çok etkileyen güncel konuyu seç, JSON döndür"}],
         )
         raw = ""
         for block in mesaj.content:
@@ -75,10 +107,23 @@ Yanıtını YALNIZCA şu JSON formatında ver (başka hiçbir şey yazma):
         raw = raw.strip()
         raw = re.sub(r"^```json\s*|^```\s*|```$", "", raw, flags=re.MULTILINE).strip()
         data = json.loads(raw)
-        print(f"🌐 Güncel konu bulundu: {data['konu']} ({data['kategori']})")
+
+        # Mevcut bloglarla çakışıyor mu?
+        konu_lower = data["konu"].lower()
+        for mevcut_konu in mevcut:
+            # Kelime bazlı benzerlik kontrolü
+            konu_kelimeler = set(konu_lower.split())
+            mevcut_kelimeler = set(mevcut_konu.split())
+            ortak = konu_kelimeler & mevcut_kelimeler
+            if len(ortak) >= 3:
+                print(f"⚠️  Konu çakışması tespit edildi ({ortak}), listeden seçiliyor...")
+                return random.choice(KONULAR)
+
+        print(f"🌐 Güncel konu: {data['konu']} ({data['kategori']})")
         return data
+
     except Exception as e:
-        print(f"⚠️  Web search başarısız ({e}), listeden konu seçiliyor...")
+        print(f"⚠️  Web search başarısız ({e}), listeden seçiliyor...")
         return random.choice(KONULAR)
 
 # ── Claude API çağrısı ────────────────────────────────────────────────────────
@@ -86,37 +131,54 @@ Yanıtını YALNIZCA şu JSON formatında ver (başka hiçbir şey yazma):
 def blog_uret(konu: str, kategori: str) -> dict:
     client = anthropic.Anthropic()
 
-    sistem = """Sen Ateş Hukuk Bürosu adına yazan deneyimli bir Türk hukuk yazarısın.
-Görevin: Verilen konuda SEO uyumlu, bilgilendirici ve güvenilir Türkçe hukuk blog yazısı üretmek.
+    sistem = """Sen Türk hukuku alanında 20 yıllık deneyime sahip, aynı zamanda SEO uzmanı bir hukuk yazarısın.
+Ateş Hukuk Bürosu (İstanbul Kartal, Kuruluş 1969) adına yazıyorsun.
 
-KURAL:
+TEMEL KURALLAR:
 - Yanıtını YALNIZCA geçerli JSON olarak ver. Hiçbir ek açıklama, markdown bloğu veya backtick ekleme.
 - JSON şeması (tüm alanlar zorunlu):
 {
-  "baslik": "60 karakter altı başlık",
-  "ozet": "150-160 karakter SEO özeti",
-  "keywords": "5-7 adet virgülle ayrılmış anahtar kelime",
+  "baslik": "55-60 karakter, anahtar kelime içeren SEO başlığı",
+  "ozet": "150-160 karakter, merak uyandıran SEO meta açıklaması",
+  "keywords": "8-10 adet virgülle ayrılmış long-tail anahtar kelime",
   "bolumler": [
-    { "id": "bolum-slug", "baslik": "Bölüm Başlığı", "icerik": "<p>...</p><ul>...</ul> formatında HTML" }
+    { "id": "bolum-slug", "baslik": "Bölüm Başlığı", "icerik": "<p>...</p> formatında zengin HTML içerik" }
   ],
   "sss": [
     { "soru": "...", "cevap": "..." }
   ],
-  "cta_metin": "Hukuki Danışmanlık Alın için kısa özgün alt metin (1 cümle)"
+  "cta_metin": "Bu konuda hukuki destek için özelleştirilmiş 1 cümle"
 }
 
-YAZI KURALLARI:
-- 700-1000 kelime arasında, akıcı Türkçe
-- En az 4 bölüm: giriş, 2-3 ana bölüm, sonuç
-- SSS: 3-4 soru-cevap
-- Yasal uyarı içersin (profesyonel hukuki tavsiye değildir)
-- Güncel Yargıtay kararı veya mevzuat atfı yap (gerçekçi görünümlü)
-- info-box veya blockquote HTML etiketleri kullanabilirsin
+İÇERİK KALİTE KURALLARI:
+- 1500-2500 kelime arasında kapsamlı, derinlikli Türkçe yazı (minimum 3000 karakter)
+- En az 6 bölüm: çarpıcı giriş, 4 ana bölüm, güçlü sonuç
+- SSS: 5-6 gerçekçi soru-cevap (vatandaşların gerçekten sorduğu sorular)
+- Her bölüm en az 3 paragraf içermeli
+- Somut örnekler ve senaryolar kullan ("Örneğin, bir işçi...")
+- Okuyucuya doğrudan hitap et ("Eğer bu durumla karşılaştıysanız...")
+
+HUKUK DOĞRULUĞU KURALLARI (ÇOK ÖNEMLİ):
+- Türk mevzuatına dayandır: TMK, TCK, İş Kanunu (4857), HMK, CMK, TBK, TTK vb. ilgili kanun maddesini belirt
+- Yargıtay kararlarına atıf yaparken "Yargıtay [Daire] kararları doğrultusunda" veya "yerleşik Yargıtay içtihadına göre" ifadelerini kullan — uydurma esas numarası YAZMA
+- Hukuki terimleri ilk kullanımda parantez içinde açıkla: "zamanaşımı (hak düşürücü süre)"
+- Güncel mevzuat değişikliklerini belirt (varsa)
+- Her yazının sonuna belirgin yasal uyarı ekle
+
+YASAL UYARI (her yazıya eklenecek — bunu bolumler içinde son bölüm olarak ekle):
+{ "id": "yasal-uyari", "baslik": "Önemli Yasal Uyarı", "icerik": "<div class=\"info-box\"><p>⚖️ <strong>Bu makale yalnızca genel bilgilendirme amaçlıdır ve hukuki tavsiye niteliği taşımaz.</strong> Türk hukuku sık değişen bir alandır; yazıdaki bilgiler yayın tarihi itibarıyla geçerlidir. Somut hukuki sorunlarınızda hak kaybına uğramamak için mutlaka alanında uzman bir avukattan profesyonel destek alınız. Ateş Hukuk Bürosu olarak İstanbul ve İzmir ofislerimizden size yardımcı olmaktan memnuniyet duyarız.</p></div>" }
+
+HTML KULLANIMI:
+- <strong> ile önemli terimleri vurgula
+- <ul><li> ile madde listelerini göster  
+- <blockquote> ile önemli hukuki ilkeleri vurgula
+- <div class="info-box"> ile dikkat çekilecek uyarıları göster
+- <div class="yargitay-card"><div class="karar-no">İlgili Mevzuat</div><p>...</p></div> ile kanun maddelerini göster
 """
 
     mesaj = client.messages.create(
         model="claude-sonnet-4-20250514",
-        max_tokens=3000,
+        max_tokens=5000,
         system=sistem,
         messages=[{"role": "user", "content": f"Konu: {konu}\nKategori: {kategori}"}],
     )
@@ -440,6 +502,45 @@ def index_guncelle(index_yolu: str, data: dict, kategori: str, slug: str):
 
 # ── Ana akış ─────────────────────────────────────────────────────────────────
 
+def yargitay_ictihat_uret() -> dict:
+    """Web search ile güncel Yargıtay içtihadı araştırır ve özel format üretir."""
+    client = anthropic.Anthropic()
+    mesaj = client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=5000,
+        tools=[{"type": "web_search_20250305", "name": "web_search"}],
+        system="""Sen Türk hukuku uzmanısın. Güncel Yargıtay kararlarını araştır.
+Yanıtını YALNIZCA geçerli JSON olarak ver:
+{
+  "baslik": "Yargıtay Kararı: [konu] - [yıl]",
+  "ozet": "150-160 karakter SEO özeti",
+  "keywords": "8-10 anahtar kelime",
+  "bolumler": [
+    {"id": "karar-ozeti", "baslik": "Kararın Özeti", "icerik": "HTML"},
+    {"id": "konu-hukuku", "baslik": "İlgili Hukuki Düzenleme", "icerik": "HTML"},
+    {"id": "kararın-onemi", "baslik": "Kararın Önemi ve Etkisi", "icerik": "HTML"},
+    {"id": "pratik-sonuclar", "baslik": "Vatandaşlar İçin Pratik Sonuçlar", "icerik": "HTML"},
+    {"id": "benzer-kararlar", "baslik": "Benzer Yargıtay Kararları", "icerik": "HTML"},
+    {"id": "sss-kararlar", "baslik": "Sık Sorulan Sorular", "icerik": "HTML"},
+    {"id": "yasal-uyari", "baslik": "Önemli Yasal Uyarı", "icerik": "<div class=\"info-box\"><p>⚖️ <strong>Bu makale yalnızca bilgilendirme amaçlıdır.</strong> Hukuki tavsiye niteliği taşımaz. Somut durumunuz için uzman avukat desteği alınız.</p></div>"}
+  ],
+  "sss": [
+    {"soru": "...", "cevap": "..."}
+  ],
+  "cta_metin": "Bu Yargıtay kararı hakkında hukuki danışmanlık alın."
+}
+Her bölüm en az 4 paragraf, toplam 1800-2500 kelime olsun. Gerçek veya gerçekçi Yargıtay kararı kullan.""",
+        messages=[{"role": "user", "content": "Türkiye Yargıtay 2025-2026 önemli emsal kararlar - vatandaşları en çok etkileyen güncel bir kararı araştır ve detaylı JSON üret"}],
+    )
+    raw = ""
+    for block in mesaj.content:
+        if hasattr(block, "text"):
+            raw += block.text
+    raw = raw.strip()
+    raw = re.sub(r"^```json\s*|^```\s*|```$", "", raw, flags=re.MULTILINE).strip()
+    return json.loads(raw)
+
+
 if __name__ == "__main__":
     # Web'den güncel konu bul
     secim = guncel_konu_bul()
@@ -447,10 +548,26 @@ if __name__ == "__main__":
     kategori = secim["kategori"]
     print(f"📝 Konu: {konu} ({kategori})")
 
-    # API ile üret
-    print("⏳ Claude API'ye bağlanılıyor...")
-    data = blog_uret(konu, kategori)
+    # Yargıtay içtihat modu
+    if konu == "YARGITAY_ICTIHAT":
+        print("⚖️  Yargıtay içtihadı araştırılıyor...")
+        data = yargitay_ictihat_uret()
+        kategori = "Yargıtay Kararları"
+    else:
+        # Normal blog üret
+        print("⏳ Claude API'ye bağlanılıyor...")
+        data = blog_uret(konu, kategori)
+
     print(f"✅ Başlık: {data['baslik']}")
+
+    # 3000 karakter kontrolü
+    toplam_icerik = " ".join(b.get("icerik","") for b in data.get("bolumler",[]))
+    temiz = re.sub(r"<[^>]+>", " ", toplam_icerik)
+    karakter = len(temiz.strip())
+    print(f"📊 İçerik uzunluğu: {karakter} karakter")
+    if karakter < 3000:
+        print("⚠️  İçerik 3000 karakterin altında, yeniden üretiliyor...")
+        data = blog_uret(konu + " (kapsamlı ve detaylı, en az 3000 karakter)", kategori)
 
     # Dosya adı
     tarih = datetime.date.today()
