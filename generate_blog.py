@@ -77,11 +77,7 @@ def mevcut_blog_konulari() -> list:
 # ── Web search ile güncel konu bul ───────────────────────────────────────────
 
 def guncel_konu_bul() -> dict:
-    """Web search ile güncel Türk hukuk haberi bulur.
-    Mevcut bloglarla çakışıyorsa listeden rastgele konu seçer.
-    %20 ihtimalle Yargıtay içtihadı formatında blog üretir."""
-    client = anthropic.Anthropic()
-
+    """Mevcut bloglarla çakışmayan rastgele konu seçer. %20 ihtimalle Yargıtay modu."""
     mevcut = mevcut_blog_konulari()
     print(f"📂 Mevcut blog sayısı: {len(mevcut)}")
 
@@ -90,41 +86,25 @@ def guncel_konu_bul() -> dict:
         print("⚖️  Yargıtay içtihadı modu seçildi!")
         return {"konu": "YARGITAY_ICTIHAT", "kategori": "Yargıtay Kararları"}
 
-    try:
-        mesaj = client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=600,
-            tools=[{"type": "web_search_20250305", "name": "web_search"}],
-            system="""Türkiye güncel hukuk haberlerini ara.
-Yanıtını YALNIZCA şu JSON formatında ver (başka hiçbir şey yazma):
-{"konu": "blog konusu (somut ve spesifik olsun)", "kategori": "Ceza Hukuku veya Aile Hukuku veya İş Hukuku veya Gayrimenkul Hukuku veya Miras Hukuku veya Ticaret Hukuku veya İcra Hukuku veya Tazminat Hukuku veya Yargıtay Kararları"}""",
-            messages=[{"role": "user", "content": "Türkiye hukuk haberleri Yargıtay kararları 2026 - vatandaşları en çok etkileyen güncel konuyu seç, JSON döndür"}],
-        )
-        raw = ""
-        for block in mesaj.content:
-            if hasattr(block, "text"):
-                raw += block.text
-        raw = raw.strip()
-        raw = re.sub(r"^```json\s*|^```\s*|```$", "", raw, flags=re.MULTILINE).strip()
-        data = json.loads(raw)
-
-        # Mevcut bloglarla çakışıyor mu?
-        konu_lower = data["konu"].lower()
+    # Mevcut bloglarla çakışmayan konu bul
+    deneme = 0
+    while deneme < 10:
+        secim = random.choice(KONULAR)
+        konu_lower = secim["konu"].lower()
+        cakisma = False
         for mevcut_konu in mevcut:
-            # Kelime bazlı benzerlik kontrolü
-            konu_kelimeler = set(konu_lower.split())
-            mevcut_kelimeler = set(mevcut_konu.split())
-            ortak = konu_kelimeler & mevcut_kelimeler
+            ortak = set(konu_lower.split()) & set(mevcut_konu.split())
             if len(ortak) >= 3:
-                print(f"⚠️  Konu çakışması tespit edildi ({ortak}), listeden seçiliyor...")
-                return random.choice(KONULAR)
+                cakisma = True
+                break
+        if not cakisma:
+            print(f"📝 Seçilen konu: {secim['konu']}")
+            return secim
+        deneme += 1
 
-        print(f"🌐 Güncel konu: {data['konu']} ({data['kategori']})")
-        return data
+    # Tüm konular işlendiyse rastgele seç
+    return random.choice(KONULAR)
 
-    except Exception as e:
-        print(f"⚠️  Web search başarısız ({e}), listeden seçiliyor...")
-        return random.choice(KONULAR)
 
 # ── Claude API çağrısı ────────────────────────────────────────────────────────
 
@@ -151,10 +131,10 @@ TEMEL KURALLAR:
 }
 
 İÇERİK KALİTE KURALLARI:
-- 1500-2500 kelime arasında kapsamlı, derinlikli Türkçe yazı (minimum 3000 karakter)
+- 1200-1800 kelime arasında kapsamlı Türkçe yazı (minimum 3000 karakter)
 - En az 6 bölüm: çarpıcı giriş, 4 ana bölüm, güçlü sonuç
 - SSS: 5-6 gerçekçi soru-cevap (vatandaşların gerçekten sorduğu sorular)
-- Her bölüm en az 3 paragraf içermeli
+- Her bölüm 2-3 paragraf içermeli
 - Somut örnekler ve senaryolar kullan ("Örneğin, bir işçi...")
 - Okuyucuya doğrudan hitap et ("Eğer bu durumla karşılaştıysanız...")
 
@@ -178,14 +158,32 @@ HTML KULLANIMI:
 
     mesaj = client.messages.create(
         model="claude-sonnet-4-20250514",
-        max_tokens=5000,
+        max_tokens=8000,
         system=sistem,
         messages=[{"role": "user", "content": f"Konu: {konu}\nKategori: {kategori}"}],
     )
 
     raw = mesaj.content[0].text.strip()
     raw = re.sub(r"^```json\s*|^```\s*|```$", "", raw, flags=re.MULTILINE).strip()
-    return json.loads(raw)
+    
+    # JSON kesilmişse son geçerli noktaya kadar kes ve düzelt
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        # Kesik JSON'u düzelt - Anthropic'e tekrar gönder
+        print("⚠️  JSON kesildi, düzeltiliyor...")
+        client2 = anthropic.Anthropic()
+        duzelt = client2.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=8000,
+            messages=[{
+                "role": "user",
+                "content": f"Bu JSON kesilmiş ve bozuk, TAM ve GEÇERLİ JSON olarak düzelt, başka hiçbir şey yazma:\n{raw[:8000]}"
+            }]
+        )
+        raw2 = duzelt.content[0].text.strip()
+        raw2 = re.sub(r"^```json\s*|^```\s*|```$", "", raw2, flags=re.MULTILINE).strip()
+        return json.loads(raw2)
 
 # ── HTML dosyası oluştur ──────────────────────────────────────────────────────
 
@@ -508,6 +506,7 @@ def yargitay_ictihat_uret() -> dict:
     mesaj = client.messages.create(
         model="claude-sonnet-4-20250514",
         max_tokens=5000,
+        timeout=60,
         tools=[{"type": "web_search_20250305", "name": "web_search"}],
         system="""Sen Türk hukuku uzmanısın. Güncel Yargıtay kararlarını araştır.
 Yanıtını YALNIZCA geçerli JSON olarak ver:
