@@ -1,18 +1,27 @@
 #!/usr/bin/env python3
 """
-Ateş Hukuk Bürosu — Otomatik Blog Üretici
-Claude API ile tam HTML formatında blog üretir ve:
+Ateş Hukuk Bürosu — Otomatik Blog Üretici (Google Gemini Sürümü)
+Gemini API ile tam HTML formatında blog üretir ve:
   1. blog/ klasörüne yeni blog .html dosyası kaydeder
   2. index.html'deki blog kartları listesini günceller
 """
 
-import anthropic
+import google.generativeai as genai
 import datetime
 import json
 import os
 import re
 import random
 import sys
+
+# ── Gemini API Kurulumu ──────────────────────────────────────────────────────
+# API Anahtarınızı ortam değişkenlerinden alıyoruz
+API_KEY = os.environ.get("GEMINI_API_KEY")
+if not API_KEY:
+    print("⚠️ HATA: GEMINI_API_KEY ortam değişkeni bulunamadı!")
+    sys.exit(1)
+
+genai.configure(api_key=API_KEY)
 
 # ── Konu havuzu ──────────────────────────────────────────────────────────────
 KONULAR = [
@@ -106,11 +115,9 @@ def guncel_konu_bul() -> dict:
     return random.choice(KONULAR)
 
 
-# ── Claude API çağrısı ────────────────────────────────────────────────────────
+# ── Gemini API çağrısı ────────────────────────────────────────────────────────
 
 def blog_uret(konu: str, kategori: str) -> dict:
-    client = anthropic.Anthropic()
-
     sistem = """Sen Türk hukuku alanında 20 yıllık deneyime sahip, aynı zamanda SEO uzmanı bir hukuk yazarısın.
 Ateş Hukuk Bürosu (İstanbul Kartal, Kuruluş 1969) adına yazıyorsun.
 
@@ -140,10 +147,9 @@ TEMEL KURALLAR:
 
 HUKUK DOĞRULUĞU KURALLARI (ÇOK ÖNEMLİ):
 - Türk mevzuatına dayandır: TMK, TCK, İş Kanunu (4857), HMK, CMK, TBK, TTK vb. ilgili kanun maddesini belirt
-- Yargıtay kararlarına atıf yaparken "Yargıtay [Daire] kararları doğrultusunda" veya "yerleşik Yargıtay içtihadına göre" ifadelerini kullan — uydurma esas numarası YAZMA
+- Yargıtay kararlarına atıf yaparken "Yargıtay [Daire] kararları doğrultusunda" veya "yerleşik Yargıtay içtihadına göre" ifadelerini kullan
 - Hukuki terimleri ilk kullanımda parantez içinde açıkla: "zamanaşımı (hak düşürücü süre)"
 - Güncel mevzuat değişikliklerini belirt (varsa)
-- Her yazının sonuna belirgin yasal uyarı ekle
 
 YASAL UYARI (her yazıya eklenecek — bunu bolumler içinde son bölüm olarak ekle):
 { "id": "yasal-uyari", "baslik": "Önemli Yasal Uyarı", "icerik": "<div class=\"info-box\"><p>⚖️ <strong>Bu makale yalnızca genel bilgilendirme amaçlıdır ve hukuki tavsiye niteliği taşımaz.</strong> Türk hukuku sık değişen bir alandır; yazıdaki bilgiler yayın tarihi itibarıyla geçerlidir. Somut hukuki sorunlarınızda hak kaybına uğramamak için mutlaka alanında uzman bir avukattan profesyonel destek alınız. Ateş Hukuk Bürosu olarak İstanbul ve İzmir ofislerimizden size yardımcı olmaktan memnuniyet duyarız.</p></div>" }
@@ -156,34 +162,84 @@ HTML KULLANIMI:
 - <div class="yargitay-card"><div class="karar-no">İlgili Mevzuat</div><p>...</p></div> ile kanun maddelerini göster
 """
 
-    mesaj = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=8000,
-        system=sistem,
-        messages=[{"role": "user", "content": f"Konu: {konu}\nKategori: {kategori}"}],
+    model = genai.GenerativeModel(
+        model_name='gemini-1.5-pro', # Kapsamlı metinler için en iyi model
+        system_instruction=sistem,
+        generation_config=genai.GenerationConfig(
+            response_mime_type="application/json", # Kesin JSON formatlaması
+            temperature=0.7,
+        )
     )
 
-    raw = mesaj.content[0].text.strip()
-    raw = re.sub(r"^```json\s*|^```\s*|```$", "", raw, flags=re.MULTILINE).strip()
-    
-    # JSON kesilmişse son geçerli noktaya kadar kes ve düzelt
+    prompt = f"Konu: {konu}\nKategori: {kategori}"
+
     try:
-        return json.loads(raw)
-    except json.JSONDecodeError:
-        # Kesik JSON'u düzelt - Anthropic'e tekrar gönder
-        print("⚠️  JSON kesildi, düzeltiliyor...")
-        client2 = anthropic.Anthropic()
-        duzelt = client2.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=8000,
-            messages=[{
-                "role": "user",
-                "content": f"Bu JSON kesilmiş ve bozuk, TAM ve GEÇERLİ JSON olarak düzelt, başka hiçbir şey yazma:\n{raw[:8000]}"
-            }]
+        response = model.generate_content(
+            prompt, 
+            request_options={"timeout": 180} # 3 dakikalık zaman aşımı süresi
         )
-        raw2 = duzelt.content[0].text.strip()
-        raw2 = re.sub(r"^```json\s*|^```\s*|```$", "", raw2, flags=re.MULTILINE).strip()
-        return json.loads(raw2)
+        raw = response.text.strip()
+        return json.loads(raw)
+    
+    except json.JSONDecodeError:
+        print("⚠️  JSON formatı geçerli değil, düzeltiliyor...")
+        # JSON'u düzeltme isteği
+        fix_model = genai.GenerativeModel(
+            model_name='gemini-1.5-pro',
+            generation_config=genai.GenerationConfig(response_mime_type="application/json")
+        )
+        fix_resp = fix_model.generate_content(
+            f"Bu JSON bozuk, TAM ve GEÇERLİ JSON olarak düzelt, sadece JSON dön:\n{response.text[:8000]}"
+        )
+        return json.loads(fix_resp.text.strip())
+
+
+def yargitay_ictihat_uret() -> dict:
+    """Gemini ile güncel Yargıtay içtihadı araştırır ve özel format üretir."""
+    sistem = """Sen Türk hukuku uzmanısın. Güncel Yargıtay kararlarını araştırıp analiz ediyorsun.
+Yanıtını YALNIZCA geçerli JSON olarak ver:
+{
+  "baslik": "Yargıtay Kararı: [konu] - [yıl]",
+  "ozet": "150-160 karakter SEO özeti",
+  "keywords": "8-10 anahtar kelime",
+  "bolumler": [
+    {"id": "karar-ozeti", "baslik": "Kararın Özeti", "icerik": "HTML"},
+    {"id": "konu-hukuku", "baslik": "İlgili Hukuki Düzenleme", "icerik": "HTML"},
+    {"id": "kararın-onemi", "baslik": "Kararın Önemi ve Etkisi", "icerik": "HTML"},
+    {"id": "pratik-sonuclar", "baslik": "Vatandaşlar İçin Pratik Sonuçlar", "icerik": "HTML"},
+    {"id": "benzer-kararlar", "baslik": "Benzer Yargıtay Kararları", "icerik": "HTML"},
+    {"id": "sss-kararlar", "baslik": "Sık Sorulan Sorular", "icerik": "HTML"},
+    {"id": "yasal-uyari", "baslik": "Önemli Yasal Uyarı", "icerik": "<div class=\"info-box\"><p>⚖️ <strong>Bu makale yalnızca bilgilendirme amaçlıdır.</strong> Hukuki tavsiye niteliği taşımaz. Somut durumunuz için uzman avukat desteği alınız.</p></div>"}
+  ],
+  "sss": [
+    {"soru": "...", "cevap": "..."}
+  ],
+  "cta_metin": "Bu Yargıtay kararı hakkında hukuki danışmanlık alın."
+}
+Her bölüm en az 4 paragraf, toplam 1800-2500 kelime olsun. Gerçek veya gerçekçi Yargıtay kararı kullan."""
+
+    model = genai.GenerativeModel(
+        model_name='gemini-1.5-pro',
+        system_instruction=sistem,
+        generation_config=genai.GenerationConfig(
+            response_mime_type="application/json",
+            temperature=0.7,
+        )
+    )
+
+    prompt = "Türkiye Yargıtay 2025-2026 önemli emsal kararlar - vatandaşları en çok etkileyen güncel bir kararı detaylı incele ve JSON formatında üret"
+
+    try:
+        response = model.generate_content(
+            prompt,
+            request_options={"timeout": 180}
+        )
+        return json.loads(response.text.strip())
+    except Exception as e:
+        print(f"⚠️ Yargıtay içtihat üretiminde hata: {e}")
+        # Hata anında rastgele standart bir konu üretmeye geri dönmesi için
+        return blog_uret(random.choice(KONULAR)["konu"], random.choice(KONULAR)["kategori"])
+
 
 # ── HTML dosyası oluştur ──────────────────────────────────────────────────────
 
@@ -489,7 +545,7 @@ def index_guncelle(index_yolu: str, data: dict, kategori: str, slug: str):
 
     # Sadece blog section içindeki grid'e ekle
     # Blog section'ının benzersiz kapanış işaretçisi
-    isaretci = '            </div>\n        </div>\n    </section>\n\n    <!-- EKİBİMİZ -->'
+    isaretci = '            </div>\n        </div>\n    </section>\n\n    '
     if isaretci in icerik:
         yeni_icerik = icerik.replace(isaretci, yeni_kart + "\n" + isaretci, 1)
         with open(index_yolu, "w", encoding="utf-8") as f:
@@ -499,46 +555,6 @@ def index_guncelle(index_yolu: str, data: dict, kategori: str, slug: str):
         print("⚠️  index.html'de blog section işaretçisi bulunamadı, kart eklenemedi.")
 
 # ── Ana akış ─────────────────────────────────────────────────────────────────
-
-def yargitay_ictihat_uret() -> dict:
-    """Web search ile güncel Yargıtay içtihadı araştırır ve özel format üretir."""
-    client = anthropic.Anthropic()
-    mesaj = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=5000,
-        timeout=60,
-        tools=[{"type": "web_search_20250305", "name": "web_search"}],
-        system="""Sen Türk hukuku uzmanısın. Güncel Yargıtay kararlarını araştır.
-Yanıtını YALNIZCA geçerli JSON olarak ver:
-{
-  "baslik": "Yargıtay Kararı: [konu] - [yıl]",
-  "ozet": "150-160 karakter SEO özeti",
-  "keywords": "8-10 anahtar kelime",
-  "bolumler": [
-    {"id": "karar-ozeti", "baslik": "Kararın Özeti", "icerik": "HTML"},
-    {"id": "konu-hukuku", "baslik": "İlgili Hukuki Düzenleme", "icerik": "HTML"},
-    {"id": "kararın-onemi", "baslik": "Kararın Önemi ve Etkisi", "icerik": "HTML"},
-    {"id": "pratik-sonuclar", "baslik": "Vatandaşlar İçin Pratik Sonuçlar", "icerik": "HTML"},
-    {"id": "benzer-kararlar", "baslik": "Benzer Yargıtay Kararları", "icerik": "HTML"},
-    {"id": "sss-kararlar", "baslik": "Sık Sorulan Sorular", "icerik": "HTML"},
-    {"id": "yasal-uyari", "baslik": "Önemli Yasal Uyarı", "icerik": "<div class=\"info-box\"><p>⚖️ <strong>Bu makale yalnızca bilgilendirme amaçlıdır.</strong> Hukuki tavsiye niteliği taşımaz. Somut durumunuz için uzman avukat desteği alınız.</p></div>"}
-  ],
-  "sss": [
-    {"soru": "...", "cevap": "..."}
-  ],
-  "cta_metin": "Bu Yargıtay kararı hakkında hukuki danışmanlık alın."
-}
-Her bölüm en az 4 paragraf, toplam 1800-2500 kelime olsun. Gerçek veya gerçekçi Yargıtay kararı kullan.""",
-        messages=[{"role": "user", "content": "Türkiye Yargıtay 2025-2026 önemli emsal kararlar - vatandaşları en çok etkileyen güncel bir kararı araştır ve detaylı JSON üret"}],
-    )
-    raw = ""
-    for block in mesaj.content:
-        if hasattr(block, "text"):
-            raw += block.text
-    raw = raw.strip()
-    raw = re.sub(r"^```json\s*|^```\s*|```$", "", raw, flags=re.MULTILINE).strip()
-    return json.loads(raw)
-
 
 if __name__ == "__main__":
     # Web'den güncel konu bul
@@ -554,7 +570,7 @@ if __name__ == "__main__":
         kategori = "Yargıtay Kararları"
     else:
         # Normal blog üret
-        print("⏳ Claude API'ye bağlanılıyor...")
+        print("⏳ Gemini API'ye bağlanılıyor...")
         data = blog_uret(konu, kategori)
 
     print(f"✅ Başlık: {data['baslik']}")
