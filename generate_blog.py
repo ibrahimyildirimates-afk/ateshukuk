@@ -157,16 +157,17 @@ YASAL UYARI (her yazıya eklenecek — bunu bolumler içinde son bölüm olarak 
 HTML KULLANIMI:
 - <strong> ile önemli terimleri vurgula
 - <ul><li> ile madde listelerini göster  
-- <blockquote> ile önemli hukuki ilkeleri vurgula
+- blockquote ile önemli hukuki ilkeleri vurgula
 - <div class="info-box"> ile dikkat çekilecek uyarıları göster
 - <div class="yargitay-card"><div class="karar-no">İlgili Mevzuat</div><p>...</p></div> ile kanun maddelerini göster
 """
 
+    # Model ismini -latest olarak güncelledik
     model = genai.GenerativeModel(
-        model_name='gemini-1.5-pro', # Kapsamlı metinler için en iyi model
+        model_name='gemini-1.5-pro-latest', 
         system_instruction=sistem,
         generation_config=genai.GenerationConfig(
-            response_mime_type="application/json", # Kesin JSON formatlaması
+            response_mime_type="application/json", 
             temperature=0.7,
         )
     )
@@ -176,16 +177,16 @@ HTML KULLANIMI:
     try:
         response = model.generate_content(
             prompt, 
-            request_options={"timeout": 180} # 3 dakikalık zaman aşımı süresi
+            request_options={"timeout": 180} 
         )
         raw = response.text.strip()
         return json.loads(raw)
     
     except json.JSONDecodeError:
         print("⚠️  JSON formatı geçerli değil, düzeltiliyor...")
-        # JSON'u düzeltme isteği
+        # JSON'u düzeltme isteğinde de model ismini güncelledik
         fix_model = genai.GenerativeModel(
-            model_name='gemini-1.5-pro',
+            model_name='gemini-1.5-pro-latest',
             generation_config=genai.GenerationConfig(response_mime_type="application/json")
         )
         fix_resp = fix_model.generate_content(
@@ -218,8 +219,9 @@ Yanıtını YALNIZCA geçerli JSON olarak ver:
 }
 Her bölüm en az 4 paragraf, toplam 1800-2500 kelime olsun. Gerçek veya gerçekçi Yargıtay kararı kullan."""
 
+    # Model ismini -latest olarak güncelledik
     model = genai.GenerativeModel(
-        model_name='gemini-1.5-pro',
+        model_name='gemini-1.5-pro-latest',
         system_instruction=sistem,
         generation_config=genai.GenerationConfig(
             response_mime_type="application/json",
@@ -237,7 +239,6 @@ Her bölüm en az 4 paragraf, toplam 1800-2500 kelime olsun. Gerçek veya gerçe
         return json.loads(response.text.strip())
     except Exception as e:
         print(f"⚠️ Yargıtay içtihat üretiminde hata: {e}")
-        # Hata anında rastgele standart bir konu üretmeye geri dönmesi için
         return blog_uret(random.choice(KONULAR)["konu"], random.choice(KONULAR)["kategori"])
 
 
