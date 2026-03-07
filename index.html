@@ -1,120 +1,440 @@
-#!/usr/bin/env python3
-"""
-Blog klasöründeki tüm HTML dosyalarını tarar,
-index.html'de kartı olmayanları otomatik ekler.
-"""
 
-import os
-import re
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-BLOG_DIR = "blog"
-INDEX_FILE = "index.html"
-SKIP_FILES = {"blog-sablon.html"}
+    <!-- ═══════════════════════════════════════════
+         TEMEL SEO
+    ═══════════════════════════════════════════ -->
+    <title>Ateş Hukuk Bürosu | Kartal İstanbul & İzmir Avukat | Kuruluş 1969</title>
+    <meta name="description" content="1969'dan bu yana İstanbul Kartal ve İzmir'de hizmet veren Ateş Hukuk Bürosu. Ceza, aile, gayrimenkul, iş ve miras hukukunda uzman avukat kadrosu. Ücretsiz ön görüşme için arayın.">
+    <meta name="keywords" content="avukat, hukuk bürosu, İstanbul avukat, Kartal avukat, İzmir avukat, ceza avukatı, boşanma avukatı, gayrimenkul avukatı, iş hukuku, miras hukuku, arabulucu">
+    <meta name="author" content="Ateş Hukuk Bürosu">
+    <meta name="robots" content="index, follow">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="canonical" href="https://www.ateshukukburosu.com/">
 
-def blog_meta_oku(dosya_yolu: str) -> dict | None:
-    """Blog HTML dosyasından başlık, özet ve kategori çeker."""
-    try:
-        with open(dosya_yolu, "r", encoding="utf-8") as f:
-            icerik = f.read()
+    <!-- ═══════════════════════════════════════════
+         OPEN GRAPH (WhatsApp, Facebook, LinkedIn)
+    ═══════════════════════════════════════════ -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.ateshukukburosu.com/">
+    <meta property="og:title" content="Ateş Hukuk Bürosu | İstanbul & İzmir | Kuruluş 1969">
+    <meta property="og:description" content="1969'dan bu yana İstanbul ve İzmir'de güvenilir hukuki danışmanlık. Ceza, aile, gayrimenkul ve iş hukukunda uzman avukat kadrosu.">
+    <meta property="og:image" content="https://www.ateshukukburosu.com/assets/og-image.jpg">
+    <meta property="og:locale" content="tr_TR">
+    <meta property="og:site_name" content="Ateş Hukuk Bürosu">
 
-        # Başlık
-        title = re.search(r"<title>(.*?)\s*\|", icerik)
-        baslik = title.group(1).strip() if title else None
+    <!-- ═══════════════════════════════════════════
+         TWITTER CARD
+    ═══════════════════════════════════════════ -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ateş Hukuk Bürosu | İstanbul & İzmir">
+    <meta name="twitter:description" content="1969'dan bu yana İstanbul ve İzmir'de güvenilir hukuki danışmanlık.">
+    <meta name="twitter:image" content="https://www.ateshukukburosu.com/assets/og-image.jpg">
 
-        # Meta description = özet
-        desc = re.search(r'<meta name="description" content="([^"]+)"', icerik)
-        ozet = desc.group(1).strip() if desc else ""
+    <!-- ═══════════════════════════════════════════
+         SCHEMA.ORG — Google Zengin Sonuçlar
+    ═══════════════════════════════════════════ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LegalService",
+      "name": "Ateş Hukuk Bürosu",
+      "url": "https://www.ateshukukburosu.com",
+      "logo": "https://www.ateshukukburosu.com/assets/logo.png",
+      "image": "https://www.ateshukukburosu.com/assets/og-image.jpg",
+      "description": "1969 yılında kurulan Ateş Hukuk Bürosu; ceza, aile, gayrimenkul, iş ve miras hukukunda İstanbul ve İzmir'de hizmet vermektedir.",
+      "foundingDate": "1969",
+      "telephone": "+90-532-602-12-01",
+      "email": "ibrahimyildirimates@gmail.com",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Yukarı Mahalle, İstasyon Caddesi, Yaşar İş Hanı No:6/7",
+        "addressLocality": "Kartal",
+        "addressRegion": "İstanbul",
+        "addressCountry": "TR"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 40.8906972,
+        "longitude": 29.1866755
+      },
+      "areaServed": ["İstanbul", "İzmir"],
+      "priceRange": "$$",
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"],
+          "opens": "09:00",
+          "closes": "18:00"
+        }
+      ],
+      "sameAs": [],
+      "hasMap": "https://maps.app.goo.gl/cdzBs7rjVADHwvUs5",
+      "employee": [
+        { "@type": "Person", "name": "Av. Kadri Ateş", "jobTitle": "Kurucu Avukat" },
+        { "@type": "Person", "name": "Av. Nilüfer Ateş Yolcu", "jobTitle": "Avukat" },
+        { "@type": "Person", "name": "Av. İbrahim Yıldırım Ateş", "jobTitle": "Avukat" },
+        { "@type": "Person", "name": "Av. Arb. Hümeyra Ateş", "jobTitle": "Avukat & Arabulucu" }
+      ]
+    }
+    </script>
 
-        # Kategori (article:section veya ilk kategori span'ı)
-        kat = re.search(r'<meta property="article:section" content="([^"]+)"', icerik)
-        if not kat:
-            kat = re.search(r'<span class="text-ates-gold[^"]*"[^>]*>([^<]+)</span>', icerik)
-        kategori = kat.group(1).strip() if kat else "Hukuki Blog"
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'ates-navy': '#001f3f',
+                        'ates-gold': '#C5A065',
+                    },
+                    fontFamily: {
+                        'heading': ['Playfair Display', 'serif'],
+                        'body': ['Montserrat', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Montserrat', sans-serif; scroll-behavior: smooth; }
+        h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
+        .service-grid-item { border-right: 1px solid #f3f4f6; border-bottom: 1px solid #f3f4f6; }
+        .blog-card { transition: all 0.3s ease; }
+        .blog-card:hover { transform: translateY(-5px); }
+    </style>
+</head>
+<body class="bg-gray-50 text-ates-navy">
 
-        if not baslik:
-            return None
+    <!-- HEADER -->
+    <header class="bg-ates-navy text-white py-4 sticky top-0 z-50 shadow-2xl border-b border-ates-gold/30">
+        <div class="container mx-auto px-6 flex items-center justify-between">
+            <div class="flex flex-col border-l-4 border-ates-gold pl-4">
+                <span class="text-2xl font-bold tracking-tighter leading-none uppercase">Ateş Hukuk</span>
+                <span class="text-[10px] tracking-[0.3em] text-ates-gold uppercase mt-1 font-bold">Bürosu • Kuruluş: 1969</span>
+            </div>
+            <nav class="hidden lg:flex space-x-8 text-xs font-semibold uppercase tracking-widest">
+                <a href="#anasayfa" class="hover:text-ates-gold transition">Ana Sayfa</a>
+                <a href="#hakkimizda" class="hover:text-ates-gold transition">Biz Kimiz</a>
+                <a href="#hizmetlerimiz" class="hover:text-ates-gold transition">Hizmetlerimiz</a>
+                <a href="#blog" class="hover:text-ates-gold transition">Hukuki Blog</a>
+                <a href="#ekibimiz" class="hover:text-ates-gold transition">Ekibimiz</a>
+                <a href="#iletisim" class="bg-ates-gold text-white px-6 py-2 rounded hover:bg-white hover:text-ates-navy transition shadow-lg">İletişim</a>
+            </nav>
+            <button id="menu-btn" class="lg:hidden flex flex-col gap-1.5 p-2 focus:outline-none" aria-label="Menüyü Aç">
+                <span class="block w-6 h-0.5 bg-white transition-all duration-300" id="bar1"></span>
+                <span class="block w-6 h-0.5 bg-white transition-all duration-300" id="bar2"></span>
+                <span class="block w-6 h-0.5 bg-white transition-all duration-300" id="bar3"></span>
+            </button>
+        </div>
+        <div id="mobile-menu" class="hidden lg:hidden bg-ates-navy border-t border-ates-gold/30 px-6 pb-6 pt-4">
+            <nav class="flex flex-col space-y-4 text-xs font-semibold uppercase tracking-widest">
+                <a href="#anasayfa" class="hover:text-ates-gold transition mobile-link">Ana Sayfa</a>
+                <a href="#hakkimizda" class="hover:text-ates-gold transition mobile-link">Biz Kimiz</a>
+                <a href="#hizmetlerimiz" class="hover:text-ates-gold transition mobile-link">Hizmetlerimiz</a>
+                <a href="#blog" class="hover:text-ates-gold transition mobile-link">Hukuki Blog</a>
+                <a href="#ekibimiz" class="hover:text-ates-gold transition mobile-link">Ekibimiz</a>
+                <a href="#iletisim" class="bg-ates-gold text-white px-6 py-3 text-center rounded hover:bg-white hover:text-ates-navy transition shadow-lg mobile-link">İletişim</a>
+            </nav>
+        </div>
+    </header>
 
-        return {"baslik": baslik, "ozet": ozet[:160], "kategori": kategori}
-    except Exception as e:
-        print(f"  ⚠️  {dosya_yolu} okunamadı: {e}")
-        return None
+    <script>
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const bar1 = document.getElementById('bar1');
+        const bar2 = document.getElementById('bar2');
+        const bar3 = document.getElementById('bar3');
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            bar1.classList.toggle('rotate-45');
+            bar1.classList.toggle('translate-y-2');
+            bar2.classList.toggle('opacity-0');
+            bar3.classList.toggle('-rotate-45');
+            bar3.classList.toggle('-translate-y-2');
+        });
+        document.querySelectorAll('.mobile-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+                bar1.classList.remove('rotate-45', 'translate-y-2');
+                bar2.classList.remove('opacity-0');
+                bar3.classList.remove('-rotate-45', '-translate-y-2');
+            });
+        });
+    </script>
 
+    <!-- HERO -->
+    <section id="anasayfa" class="relative bg-ates-navy h-[75vh] flex items-center overflow-hidden">
+        <div class="absolute inset-0 opacity-25 bg-[url('https://images.unsplash.com/photo-1505664194779-8beaceb93744?q=80&w=1470')] bg-cover bg-center"></div>
+        <div class="container mx-auto px-6 relative z-10 text-center text-white">
+            <h1 class="text-5xl md:text-7xl font-bold mb-6">Yarım Asrı Aşkın Hukuki Tecrübe</h1>
+            <p class="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto mb-10 font-light italic">"1969'dan bugüne adaletin ve müvekkil güveninin sarsılmaz adresi."</p>
+            <div class="flex flex-col sm:flex-row justify-center gap-6">
+                <a href="#hizmetlerimiz" class="bg-ates-gold text-white px-10 py-4 text-sm font-bold uppercase tracking-widest hover:bg-white hover:text-ates-navy transition shadow-xl">Hizmetlerimiz</a>
+                <a href="#hakkimizda" class="border-2 border-white text-white px-10 py-4 text-sm font-bold uppercase tracking-widest hover:bg-white hover:text-ates-navy transition">Kurumsal</a>
+            </div>
+        </div>
+    </section>
 
-def index_guncelle(yeni_bloglar: list):
-    """Eksik blog kartlarını index.html'e ekler."""
-    with open(INDEX_FILE, "r", encoding="utf-8") as f:
-        icerik = f.read()
+    <!-- HAKKIMIZDA -->
+    <section id="hakkimizda" class="bg-white py-24">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col lg:flex-row items-center gap-20">
+                <div class="lg:w-1/2">
+                    <h2 class="text-ates-gold font-bold tracking-widest uppercase mb-4">Biz Kimiz?</h2>
+                    <h3 class="text-5xl font-bold text-ates-navy mb-8 leading-tight font-heading">İstanbul ve İzmir'in<br>Köklü Hukuk Geleneği</h3>
+                    <p class="text-gray-700 leading-relaxed text-lg mb-8 text-justify">
+                        1969 yılında Kartal'da <strong>merhum Av. Kadri Ateş</strong> tarafından temelleri atılan Ateş Hukuk Bürosu, yarım asrı aşkın tecrübesiyle İstanbul ve İzmir'deki müvekkillerine sadakat ve şeffaflıkla rehberlik etmektedir.
+                    </p>
+                    <div class="grid grid-cols-2 gap-6 text-sm font-bold text-ates-navy uppercase tracking-tighter">
+                        <div class="flex items-center gap-3"><span class="bg-ates-gold w-2 h-2 rounded-full"></span> Ceza Hukuku</div>
+                        <div class="flex items-center gap-3"><span class="bg-ates-gold w-2 h-2 rounded-full"></span> Gayrimenkul Hukuku</div>
+                        <div class="flex items-center gap-3"><span class="bg-ates-gold w-2 h-2 rounded-full"></span> Aile Hukuku</div>
+                        <div class="flex items-center gap-3"><span class="bg-ates-gold w-2 h-2 rounded-full"></span> İş Hukuku</div>
+                        <div class="flex items-center gap-3"><span class="bg-ates-gold w-2 h-2 rounded-full"></span> Miras Hukuku</div>
+                        <div class="flex items-center gap-3"><span class="bg-ates-gold w-2 h-2 rounded-full"></span> Arabuluculuk</div>
+                    </div>
+                </div>
+                <div class="lg:w-1/2 relative px-10">
+                    <div class="border-[15px] border-gray-100 shadow-2xl relative z-10">
+                        <img src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=800" alt="Ateş Hukuk Bürosu - İstanbul Kartal" class="w-full grayscale hover:grayscale-0 transition duration-1000 shadow-2xl">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    eklenen = 0
-    for slug, meta in yeni_bloglar:
-        kart = f"""                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8">
-                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">{meta['kategori']}</span>
-                    <h4 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">{meta['baslik']}</h4>
-                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">{meta['ozet']}</p>
-                    <a href="/blog/{slug}" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
-                </div>"""
+    <!-- GÜVENLİK UYARISI -->
+    <section class="bg-red-600 py-10 text-white">
+        <div class="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div class="flex items-center gap-6">
+                <div class="bg-white text-red-600 p-4 rounded-full text-2xl">⚠️</div>
+                <div>
+                    <h4 class="font-bold text-2xl uppercase font-heading">ÖNEMLİ GÜVENLİK UYARISI</h4>
+                    <p class="text-sm opacity-90 italic"> Ofisimizin ismini kullanarak "Dosya kapatma ücreti" talep eden dolandırıcılara itibar etmeyiniz. Web sayfamızda yer alanlar haricinde hiçbir avukat ofisimizde çalışmamaktadır, bu kişileri emniyet güçlerine ve savcılığa ihbar ediniz</p>
+                </div>
+            </div>
+            <a href="tel:+905326021201" class="bg-white text-red-600 px-8 py-4 rounded shadow-2xl font-bold text-xl hover:bg-red-50 transition whitespace-nowrap flex-shrink-0">
+                📞&nbsp;0532&nbsp;602&nbsp;12&nbsp;01
+            </a>
+        </div>
+    </section>
 
-        # id="blog" section'ına ekle
-        blog_start = icerik.find('id="blog"')
-        if blog_start == -1:
-            print("❌ id='blog' bulunamadı!")
-            return
+    <!-- HİZMETLERİMİZ -->
+    <section id="hizmetlerimiz" class="bg-white py-24">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-ates-gold font-bold tracking-[0.4em] uppercase text-xs mb-4">Faaliyet Alanlarımız</h2>
+            <h3 class="text-5xl font-bold text-ates-navy font-heading italic mb-16">Hukuki Çözüm Ortaklığı</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border border-gray-100 shadow-xl text-left">
+                <div class="group p-10 service-grid-item hover:bg-ates-navy transition duration-500">
+                    <h4 class="text-xl font-bold mb-3 text-ates-navy group-hover:text-ates-gold uppercase transition font-heading">Ceza Hukuku</h4>
+                    <p class="text-gray-600 group-hover:text-gray-300 text-sm">İstanbul ve İzmir'de soruşturma ve kovuşturma aşamalarında stratejik savunma.</p>
+                </div>
+                <div class="group p-10 service-grid-item hover:bg-ates-navy transition duration-500">
+                    <h4 class="text-xl font-bold mb-3 text-ates-navy group-hover:text-ates-gold uppercase transition font-heading">Gayrimenkul Hukuku</h4>
+                    <p class="text-gray-600 group-hover:text-gray-300 text-sm">Tapu iptal tescil ve kentsel dönüşüm uyuşmazlıklarında uzman temsil.</p>
+                </div>
+                <div class="group p-10 service-grid-item hover:bg-ates-navy transition duration-500">
+                    <h4 class="text-xl font-bold mb-3 text-ates-navy group-hover:text-ates-gold uppercase transition font-heading">Aile Hukuku</h4>
+                    <p class="text-gray-600 group-hover:text-gray-300 text-sm">Boşanma, velayet, nafaka ve gizlilik odaklı çözümler.</p>
+                </div>
+                <div class="group p-10 service-grid-item hover:bg-ates-navy transition duration-500">
+                    <h4 class="text-xl font-bold mb-3 text-ates-navy group-hover:text-ates-gold uppercase transition font-heading">İş Hukuku</h4>
+                    <p class="text-gray-600 group-hover:text-gray-300 text-sm">İşçi ve işveren uyuşmazlıklarında etkin hukuki temsil.</p>
+                </div>
+                <div class="group p-10 service-grid-item hover:bg-ates-navy transition duration-500">
+                    <h4 class="text-xl font-bold mb-3 text-ates-navy group-hover:text-ates-gold uppercase transition font-heading">Miras Hukuku</h4>
+                    <p class="text-gray-600 group-hover:text-gray-300 text-sm">Vasiyetname, miras taksimi ve tereke davalarında uzman danışmanlık.</p>
+                </div>
+                <div class="group p-10 service-grid-item hover:bg-ates-navy transition duration-500">
+                    <h4 class="text-xl font-bold mb-3 text-ates-navy group-hover:text-ates-gold uppercase transition font-heading">Arabuluculuk</h4>
+                    <p class="text-gray-600 group-hover:text-gray-300 text-sm">Mahkeme dışı çözüm yollarıyla hızlı ve kalıcı uzlaşı.</p>
+                </div>
+                <div class="group p-10 service-grid-item hover:bg-ates-navy transition duration-500">
+                    <h4 class="text-xl font-bold mb-3 text-ates-navy group-hover:text-ates-gold uppercase transition font-heading">Sigorta Hukuku</h4>
+                    <p class="text-gray-600 group-hover:text-gray-300 text-sm">Sigorta tazminat uyuşmazlıklarında ve poliçe ihtilaflarında hukuki destek.</p>
+                </div>
+                <div class="group p-10 service-grid-item hover:bg-ates-navy transition duration-500">
+                    <h4 class="text-xl font-bold mb-3 text-ates-navy group-hover:text-ates-gold uppercase transition font-heading">Tüketici Hukuku</h4>
+                    <p class="text-gray-600 group-hover:text-gray-300 text-sm">Tüketici hakları, ayıplı mal ve hizmet davalarında etkin savunuculuk.</p>
+                </div>
+                <div class="group p-10 service-grid-item hover:bg-ates-navy transition duration-500">
+                    <h4 class="text-xl font-bold mb-3 text-ates-navy group-hover:text-ates-gold uppercase transition font-heading">Sözleşmeler Hukuku</h4>
+                    <p class="text-gray-600 group-hover:text-gray-300 text-sm">Sözleşme hazırlama, inceleme ve uyuşmazlıkların çözümünde uzman danışmanlık.</p>
+                </div>
+                <div class="group p-10 service-grid-item hover:bg-ates-navy transition duration-500">
+                    <h4 class="text-xl font-bold mb-3 text-ates-navy group-hover:text-ates-gold uppercase transition font-heading">İcra ve İflas Hukuku</h4>
+                    <p class="text-gray-600 group-hover:text-gray-300 text-sm">Alacak takibi, icra işlemleri ve iflas süreçlerinde kapsamlı hukuki temsil.</p>
+                </div>
+                <div class="group p-10 service-grid-item hover:bg-ates-navy transition duration-500">
+                    <h4 class="text-xl font-bold mb-3 text-ates-navy group-hover:text-ates-gold uppercase transition font-heading">İdare Hukuku</h4>
+                    <p class="text-gray-600 group-hover:text-gray-300 text-sm">İdari işlemlere itiraz, iptal davaları ve tam yargı davalarında uzman destek.</p>
+                </div>
+                <div class="group p-10 service-grid-item hover:bg-ates-navy transition duration-500">
+                    <h4 class="text-xl font-bold mb-3 text-ates-navy group-hover:text-ates-gold uppercase transition font-heading">Bilişim Hukuku & KVKK</h4>
+                    <p class="text-gray-600 group-hover:text-gray-300 text-sm">Kişisel veri ihlalleri, siber suçlar ve KVKK uyum süreçlerinde hukuki rehberlik.</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-        section_end = icerik.find('</section>', blog_start)
-        onceki = icerik[:section_end]
-        son_div = onceki.rfind('</div>')
+    <!-- BLOG -->
+    <section id="blog" class="bg-gray-50 py-24 border-t border-gray-200">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-ates-gold font-bold tracking-[0.4em] uppercase text-xs mb-4">Güncel Makaleler</h2>
+            <h3 class="text-5xl font-bold text-ates-navy font-heading italic mb-16">Hukuki Blog</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">Aile Hukuku</span>
+                    <h4 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">İstanbul Boşanma Avukatı: Tanık Beyanı</h4>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">Boşanma davasının en önemli delilleri arasında tanık beyanı gelmektedir. Doğru tanık seçimi ve beyanın mahkemede nasıl sunulacağı sonucu doğrudan etkiler.</p>
+                    <a href="/blog/bosanma-tanik-beyani.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>
+                
 
-        icerik = icerik[:son_div] + kart + "\n            " + icerik[son_div:]
-        eklenen += 1
-        print(f"  ✅ Kart eklendi: {meta['baslik'][:60]}")
+<div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">Ceza Hukuku</span>
+                    <h4 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">Banka Hesabını Kiralayan Öğrenciye Beraat Kararı</h4>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">Harçlığını çıkarmak için banka hesabını komisyon karşılığında kiralayan ve suç kastı bulunmayan öğrenci sanığa ilişkin Yargıtay emsal kararı.</p>
+                    <a href="/blog/banka-hesabini-kiralayan-ogrenci-beraat.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">Ceza Hukuku</span>
+                    <h4 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">Ceza Muhakemesinde Tutukluluk ve Tahliye Prosedürü</h4>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">Ceza muhakemesinde tutukluluk kararı nasıl verilir? Tahliye başvurusu nasıl yapılır? Tutukluluk şartları ve tahliye prosedürü hakkında bilmeniz gerekenler.</p>
+                    <a href="/blog/ceza-muhakemesinde-tutukluluk-ve-tahliye-proseduru.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">Bilişim Hukuku</span>
+                    <h4 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">KVKK Veri İhlali Tazminat Hakkı: Nasıl Başvurulur?</h4>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">Kişisel verileriniz ihlal edildi mi? KVKK kapsamında tazminat hakkınızı nasıl kullanacağınızı, başvuru süreçlerini ve alacağınız tazminat miktarını öğrenin.</p>
+                    <a href="/blog/kvkk-veri-ihlali-tazminat-hakki-nasil-basvurulur.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    if eklenen > 0:
-        with open(INDEX_FILE, "w", encoding="utf-8") as f:
-            f.write(icerik)
-        print(f"\n✅ index.html güncellendi — {eklenen} yeni kart eklendi.")
-    else:
-        print("✅ index.html zaten güncel, değişiklik yok.")
+    <!-- EKİBİMİZ -->
+    <section id="ekibimiz" class="bg-gray-100 py-24">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-4xl font-bold text-ates-navy mb-16 uppercase tracking-widest border-b-2 border-ates-gold pb-6 inline-block font-heading">Hukuk Ekibimiz</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+                <div class="bg-white p-10 border-b-8 border-ates-navy shadow-xl hover:translate-y-[-5px] transition duration-500">
+                    <h3 class="font-bold text-xl uppercase mb-2 font-heading">Av. Kadri Ateş</h3>
+                    <p class="text-ates-gold text-xs font-bold mb-6 italic uppercase">Kurucu Avukat</p>
+                    <div class="text-[10px] text-gray-400 pt-6 border-t font-semibold uppercase">İstanbul Üniversitesi</div>
+                </div>
+                <div class="bg-white p-10 border-b-8 border-ates-navy shadow-xl hover:translate-y-[-5px] transition duration-500">
+                    <h3 class="font-bold text-xl uppercase mb-2 font-heading">Av.Arb. Nilüfer Ateş Yolcu</h3>
+                    <p class="text-ates-gold text-xs font-bold mb-6 italic uppercase">Avukat&Arabulucu</p>
+                    <div class="text-[10px] text-gray-400 pt-6 border-t font-semibold uppercase">Marmara Üniversitesi</div>
+                </div>
+                <div class="bg-white p-10 border-b-8 border-ates-navy shadow-xl hover:translate-y-[-5px] transition duration-500">
+                    <h3 class="font-bold text-xl uppercase mb-2 font-heading">Av. İbrahim Yıldırım Ateş</h3>
+                    <p class="text-ates-gold text-xs font-bold mb-6 italic uppercase">Avukat</p>
+                    <div class="text-[10px] text-gray-400 pt-6 border-t font-semibold uppercase">Bilgi Üniversitesi</div>
+                </div>
+                <div class="bg-white p-10 border-b-8 border-ates-gold shadow-xl hover:translate-y-[-5px] transition duration-500">
+                    <h3 class="font-bold text-xl uppercase mb-2 font-heading">Av. Arb. Hümeyra Ateş</h3>
+                    <p class="text-ates-gold text-xs font-bold mb-6 italic uppercase">Avukat & Arabulucu</p>
+                    <div class="text-[10px] text-gray-400 pt-6 border-t font-semibold uppercase italic">Marmara Üniversitesi / İstanbul Üniversitesi Y.L.</div>
+                </div>
+            </div>
+        </div>
+    </section>
 
+    <!-- İLETİŞİM -->
+    <section id="iletisim" class="bg-white py-24 border-t border-gray-100">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-ates-gold font-bold tracking-[0.4em] uppercase text-xs mb-4">Bize Ulaşın</h2>
+                <h3 class="text-5xl font-bold text-ates-navy font-heading italic">Hukuki Danışmanlık Alın</h3>
+            </div>
+            <div class="flex flex-col lg:flex-row gap-12">
+                <div class="lg:w-1/2 bg-gray-50 p-10 shadow-xl border-t-8 border-ates-navy">
+                    <h4 class="text-2xl font-bold text-ates-navy mb-6 font-heading">İletişim Formu</h4>
+                    <form name="iletisim" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/tesekkurler.html" class="space-y-6">
+                        <input type="hidden" name="form-name" value="iletisim">
+                        <input type="hidden" name="subject" value="Ateş Hukuk - Yeni İletişim Formu Mesajı">
+                        <!-- Spam koruması -->
+                        <p class="hidden"><input name="bot-field"></p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase text-gray-500 mb-2">Adınız Soyadınız</label>
+                                <input type="text" name="name" required class="w-full p-3 border border-gray-300 focus:border-ates-gold outline-none transition text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase text-gray-500 mb-2">Telefon Numaranız</label>
+                                <input type="tel" name="phone" required class="w-full p-3 border border-gray-300 focus:border-ates-gold outline-none transition text-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-gray-500 mb-2">E-posta Adresiniz</label>
+                            <input type="email" name="email" required class="w-full p-3 border border-gray-300 focus:border-ates-gold outline-none transition text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase text-gray-500 mb-2">Mesajınız</label>
+                            <textarea name="message" rows="5" required class="w-full p-3 border border-gray-300 focus:border-ates-gold outline-none transition text-sm"></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-ates-navy text-white font-bold py-4 uppercase tracking-widest hover:bg-ates-gold transition duration-300 shadow-lg">Mesajı Gönder</button>
+                    </form>
+                </div>
+                <div class="lg:w-1/2 flex flex-col">
+                    <div class="bg-ates-navy text-white p-10 mb-6 shadow-xl border-b-4 border-ates-gold">
+                        <h4 class="text-xl font-bold text-ates-gold mb-6 uppercase tracking-widest font-heading">Ofis Bilgileri</h4>
+                        <div class="space-y-6 text-sm">
+                            <p class="flex items-start gap-4 italic font-light">
+                                <span class="text-ates-gold">📍</span>
+                                Yukarı Mahalle, İstasyon Caddesi, Yaşar İş Hanı No:6/7 Kartal / İSTANBUL
+                            </p>
+                            <p class="flex items-center gap-4">
+                                <span class="text-ates-gold">📞</span>
+                                <a href="tel:+905326021201" class="hover:text-ates-gold transition">0532 602 12 01</a>
+                            </p>
+                            <p class="flex items-center gap-4">
+                                <span class="text-ates-gold">✉️</span>
+                                <a href="mailto:ibrahimyildirimates@gmail.com" class="hover:text-ates-gold transition">ibrahimyildirimates@gmail.com</a>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex-grow min-h-[350px] shadow-xl border-4 border-white overflow-hidden">
+                        <iframe
+                            title="Ateş Hukuk Bürosu Konum"
+                            src="https://maps.google.com/maps?q=Ate%C5%9F+Hukuk+B%C3%BCrosu,+Ya%C5%9Far+%C4%B0%C5%9F+Han%C4%B1,+%C4%B0stasyon+Cd.+No%3A6%2F7,+Kartal%2F%C4%B0stanbul&output=embed"
+                            class="w-full h-full border-0 grayscale hover:grayscale-0 transition duration-1000"
+                            allowfullscreen=""
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-def main():
-    if not os.path.exists(BLOG_DIR):
-        print("❌ blog/ klasörü bulunamadı.")
-        return
-
-    if not os.path.exists(INDEX_FILE):
-        print("❌ index.html bulunamadı.")
-        return
-
-    # index.html'deki mevcut blog linklerini al
-    with open(INDEX_FILE, "r", encoding="utf-8") as f:
-        index_icerik = f.read()
-
-    mevcut_linkler = set(re.findall(r'href="/blog/([^"]+)"', index_icerik))
-    print(f"📋 index.html'de mevcut {len(mevcut_linkler)} blog kartı var.")
-
-    # blog/ klasöründeki tüm dosyaları tara
-    blog_dosyalari = [
-        f for f in os.listdir(BLOG_DIR)
-        if f.endswith(".html") and f not in SKIP_FILES
-    ]
-    print(f"📂 blog/ klasöründe {len(blog_dosyalari)} HTML dosyası var.")
-
-    # Eksik olanları bul
-    eksik = []
-    for dosya in sorted(blog_dosyalari):
-        if dosya not in mevcut_linkler:
-            meta = blog_meta_oku(os.path.join(BLOG_DIR, dosya))
-            if meta:
-                print(f"  ➕ Eksik: {dosya}")
-                eksik.append((dosya, meta))
-
-    if not eksik:
-        print("\n✅ Tüm bloglar zaten index.html'de mevcut.")
-        return
-
-    print(f"\n🔄 {len(eksik)} eksik blog kartı eklenecek...")
-    index_guncelle(eksik)
-
-
-if __name__ == "__main__":
-    main()
+    <!-- FOOTER -->
+    <footer class="bg-ates-navy text-white pt-20 pb-10 border-t border-gray-800">
+        <div class="container mx-auto px-6 grid md:grid-cols-3 gap-16 text-sm pb-16 border-b border-gray-800">
+            <div>
+                <h4 class="text-3xl font-bold mb-6 tracking-tighter font-heading uppercase">ATEŞ HUKUK</h4>
+                <p class="text-gray-400 leading-relaxed italic text-lg">"1969'dan bugüne, hak ve adaletin izinde yarım asrı geride bıraktık."</p>
+            </div>
+            <div>
+                <h4 class="text-ates-gold font-bold mb-6 uppercase tracking-widest font-heading">İletişim</h4>
+                <p>Kartal / İstanbul</p>
+                <a href="tel:+905326021201" class="text-xl font-bold mt-4 block text-white hover:text-ates-gold transition">0532 602 12 01</a>
+                <a href="mailto:ibrahimyildirimates@gmail.com" class="hover:text-ates-gold transition">ibrahimyildirimates@gmail.com</a>
+            </div>
+            <div>
+                <h4 class="text-ates-gold font-bold mb-6 uppercase tracking-widest font-heading">Hızlı Linkler</h4>
+                <ul class="space-y-3 uppercase text-[10px] tracking-[0.2em]">
+                    <li><a href="#hakkimizda" class="hover:text-ates-gold transition">Kurumsal</a></li>
+                    <li><a href="#hizmetlerimiz" class="hover:text-ates-gold transition">Faaliyet Alanları</a></li>
+                    <li><a href="#blog" class="hover:text-ates-gold transition">Hukuki Blog</a></li>
+                    <li><a href="#ekibimiz" class="hover:text-ates-go
