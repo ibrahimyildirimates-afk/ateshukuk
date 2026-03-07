@@ -2,13 +2,16 @@ name: Otomatik Blog Üretici — Ateş Hukuk
 
 on:
   schedule:
-    # Her Pazartesi, Çarşamba ve Cuma sabah 08:00 (TR saati = 05:00 UTC)
-    - cron: "0 5 * * 1,3,5"
-  workflow_dispatch: # Elle de çalıştırabilirsin
+    - cron: "0 5 * * *"  # Her gün 08:00 TR saati
+  workflow_dispatch:
+  push:
+    paths:
+      - 'blog/**'  # blog/ klasörüne yeni dosya eklenince de çalışır
 
 jobs:
   blog-uret:
     runs-on: ubuntu-latest
+    timeout-minutes: 8
 
     steps:
       - name: Kodu çek
@@ -24,10 +27,14 @@ jobs:
       - name: Bağımlılıkları yükle
         run: pip install anthropic
 
-      - name: Blog üret
+      - name: Blog üret (sadece schedule/manuel)
+        if: github.event_name != 'push'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python generate_blog.py
+
+      - name: Index'i senkronize et (tüm eventlarda)
+        run: python sync_blog_index.py
 
       - name: Git ayarla
         run: |
@@ -37,5 +44,6 @@ jobs:
       - name: Değişiklikleri kaydet ve yükle
         run: |
           git add blog/ index.html
-          git diff --staged --quiet || git commit -m "🤖 Yeni blog: $(date +'%Y-%m-%d')"
+          git diff --staged --quiet || git commit -m "🤖 Blog sync: $(date +'%Y-%m-%d')"
+          git pull --rebase origin main
           git push
