@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 blog/ klasöründeki tüm HTML dosyalarını tarar,
-index.html'de kartı olmayanları grid içine ekler.
+index.html'de kartı olmayanları otomatik ekler.
 """
 import os, re
 
@@ -26,22 +26,13 @@ def blog_meta_oku(dosya_yolu):
         print(f"  ⚠️  {dosya_yolu}: {e}")
         return None
 
-def grid_sonu_bul(icerik, grid_start):
-    """Grid div'inin kapanış pozisyonunu bulur."""
-    pos = grid_start
-    depth = 0
-    while pos < len(icerik):
-        o = icerik.find('<div', pos)
-        c = icerik.find('</div>', pos)
-        if o != -1 and (c == -1 or o < c):
-            depth += 1
-            pos = o + 4
-        else:
-            depth -= 1
-            if depth == 0:
-                return c  # </div> başlangıcı
-            pos = c + 6
-    return -1
+def insert_point_bul(icerik):
+    """Son blog kartının kapanışından sonraki pozisyonu döner."""
+    blog_start = icerik.find('id="blog"')
+    section_end = icerik.find('</section>', blog_start)
+    grid_region = icerik[blog_start:section_end]
+    last_card_close = grid_region.rfind('</div>', 0, grid_region.rfind('</div>'))
+    return blog_start + last_card_close + 6
 
 def main():
     if not os.path.exists(BLOG_DIR) or not os.path.exists(INDEX_FILE):
@@ -58,19 +49,13 @@ def main():
                        if f.endswith(".html") and f not in SKIP_FILES])
     print(f"📂 blog/ klasöründe {len(dosyalar)} dosya var.")
 
-    # Grid'i bul
-    blog_start = icerik.find('id="blog"')
-    grid_start = icerik.find('<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8', blog_start)
-    if grid_start == -1:
-        print("❌ Blog grid bulunamadı!")
-        return
-
     eklenen = 0
     for dosya in dosyalar:
         if dosya in mevcut:
             continue
         meta = blog_meta_oku(os.path.join(BLOG_DIR, dosya))
         if not meta:
+            print(f"  ⚠️  {dosya} atlandı.")
             continue
 
         kart = f"""
@@ -81,15 +66,8 @@ def main():
                     <a href="/blog/{dosya}" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
                 </div>"""
 
-        # Her seferinde grid sonunu yeniden hesapla
-        grid_start = icerik.find('<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8',
-                                  icerik.find('id="blog"'))
-        grid_end = grid_sonu_bul(icerik, grid_start)
-        if grid_end == -1:
-            print("❌ Grid kapanışı bulunamadı!")
-            return
-
-        icerik = icerik[:grid_end] + kart + "\n            " + icerik[grid_end:]
+        insert = insert_point_bul(icerik)
+        icerik = icerik[:insert] + kart + "\n" + icerik[insert:]
         eklenen += 1
         print(f"  ✅ Eklendi: {meta['baslik'][:60]}")
 
