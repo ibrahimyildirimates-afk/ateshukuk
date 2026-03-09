@@ -26,13 +26,13 @@ def blog_meta_oku(dosya_yolu):
         print(f"  ⚠️  {dosya_yolu}: {e}")
         return None
 
-def insert_point_bul(icerik):
-    """Son blog kartının kapanışından sonraki pozisyonu döner."""
-    blog_start = icerik.find('id="blog"')
-    section_end = icerik.find('</section>', blog_start)
-    grid_region = icerik[blog_start:section_end]
-    last_card_close = grid_region.rfind('</div>', 0, grid_region.rfind('</div>'))
-    return blog_start + last_card_close + 6
+def son_kart_sonu(icerik):
+    """Son blog kartının kapanış </div>'inden sonraki pozisyonu döner."""
+    kartlar = list(re.finditer(r'<div class="bg-white blog-card', icerik))
+    if not kartlar:
+        return -1
+    son_kart_start = kartlar[-1].start()
+    return icerik.find('</div>', son_kart_start) + 6
 
 def main():
     if not os.path.exists(BLOG_DIR) or not os.path.exists(INDEX_FILE):
@@ -66,8 +66,11 @@ def main():
                     <a href="/blog/{dosya}" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
                 </div>"""
 
-        insert = insert_point_bul(icerik)
-        icerik = icerik[:insert] + kart + "\n" + icerik[insert:]
+        insert = son_kart_sonu(icerik)
+        if insert == -1:
+            print("❌ Blog kartı bulunamadı!")
+            return
+        icerik = icerik[:insert] + kart + icerik[insert:]
         eklenen += 1
         print(f"  ✅ Eklendi: {meta['baslik'][:60]}")
 
