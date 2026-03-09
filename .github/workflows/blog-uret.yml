@@ -44,12 +44,25 @@ jobs:
 
       - name: Değişiklikleri kaydet ve yükle
         run: |
+          # 1. Değişiklikleri Git'e tanıt
           git add blog/ index.html blog.html
+          
+          # 2. Eğer hiç değişiklik yoksa işlemi bitir
           if git diff --staged --quiet; then
             echo "✅ Değişiklik yok, atlandı."
             exit 0
           fi
+          
+          # 3. Çakışmayı önlemek için yapılan değişiklikleri geçici olarak kenara al
+          git stash
+          
+          # 4. Uzak sunucudaki güncel dosyaları çek
           git pull --rebase origin main
+          
+          # 5. Kenara aldığın değişiklikleri tekrar uygula
+          git stash pop || echo "Çakışma yok, devam ediliyor."
+          
+          # 6. Değişiklikleri tekrar ekle, imzala ve gönder
           git add blog/ index.html blog.html
           git commit -m "🤖 Blog sync: $(date +'%Y-%m-%d')"
           git push
