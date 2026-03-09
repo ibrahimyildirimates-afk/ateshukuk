@@ -30,15 +30,25 @@ def blog_meta_oku(dosya_yolu):
         return None
 
 def insert_point_bul(icerik):
-    """Son blog kartından sonraki noktayı bulur (grid içi)."""
+    """Grid div kapanışını depth sayarak bulur, oraya ekle."""
     blog_start = icerik.find('id="blog"')
-    if blog_start == -1:
-        blog_start = icerik.find('id="blog-grid"')
-    section_end = icerik.find('</section>', blog_start)
-    onceki = icerik[:section_end]
-    son_div = onceki.rfind('</div>')
-    iki_div = onceki.rfind('</div>', 0, son_div)
-    return iki_div + 6
+    grid_start = icerik.find('class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3', blog_start)
+    if grid_start == -1:
+        return -1
+    # <div'in başına git
+    div_start = icerik.rfind('<div', 0, grid_start)
+    pos, depth = div_start, 0
+    while pos < len(icerik):
+        o = icerik.find('<div', pos)
+        c = icerik.find('</div>', pos)
+        if o != -1 and (c == -1 or o < c):
+            depth += 1; pos = o + 4
+        else:
+            depth -= 1
+            if depth == 0:
+                return c  # grid kapanışının başı
+            pos = c + 6
+    return -1
 
 def kart_olustur(slug, meta, data_attr=True):
     data = f' data-kategori="{meta["kategori"]}"' if data_attr else ''
@@ -63,7 +73,7 @@ def index_guncelle(tum_bloglar):
     yeni = [(s, m) for s, m in tum_bloglar if s not in mevcut]
     for slug, meta in yeni:
         insert = insert_point_bul(ic)
-        ic = ic[:insert] + kart_olustur(slug, meta, data_attr=False) + "\n" + ic[insert:]
+        ic = ic[:insert] + kart_olustur(slug, meta, data_attr=False) + "\n                " + ic[insert:]
 
     # Toplam kart sayısını INDEX_LIMIT'e indir (en eskiyi kaldır)
     mevcut_guncel = re.findall(r'href="/blog/([^"]+)"', ic)
@@ -105,7 +115,7 @@ def blog_sayfasi_guncelle(tum_bloglar):
         if slug in mevcut:
             continue
         insert = insert_point_bul(ic)
-        ic = ic[:insert] + kart_olustur(slug, meta, data_attr=True) + "\n" + ic[insert:]
+        ic = ic[:insert] + kart_olustur(slug, meta, data_attr=True) + "\n                " + ic[insert:]
         eklenen += 1
         print(f"  ✅ blog.html'e eklendi: {meta['baslik'][:55]}")
 
