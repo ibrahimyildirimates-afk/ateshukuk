@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hukuki Blog | Ateş Hukuk Bürosu</title>
+    <meta name="description" content="Ateş Hukuk Bürosu'nun güncel hukuki makaleleri, Yargıtay kararları ve hukuk haberleri.">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 'ates-navy': '#001f3f', 'ates-gold': '#C5A065' },
+                    fontFamily: { 'heading': ['Playfair Display', 'serif'], 'body': ['Montserrat', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Montserrat', sans-serif; }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+        .blog-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .blog-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.12); }
+    </style>
+</head>
+<body class="bg-gray-50 text-ates-navy">
+
+    <!-- HEADER -->
+    <header class="bg-ates-navy text-white py-4 sticky top-0 z-50 shadow-2xl border-b border-ates-gold/30">
+        <div class="container mx-auto px-6 flex items-center justify-between">
+            <a href="/" class="flex flex-col border-l-4 border-ates-gold pl-4">
+                <span class="text-2xl font-bold tracking-tighter leading-none uppercase">Ateş Hukuk</span>
+                <span class="text-[10px] tracking-[0.3em] text-ates-gold uppercase mt-1 font-bold">Bürosu • Kuruluş: 1969</span>
+            </a>
+            <nav class="hidden lg:flex space-x-8 text-xs font-semibold uppercase tracking-widest">
+                <a href="/" class="hover:text-ates-gold transition">Ana Sayfa</a>
+                <a href="/#hakkimizda" class="hover:text-ates-gold transition">Biz Kimiz</a>
+                <a href="/#hizmetlerimiz" class="hover:text-ates-gold transition">Hizmetlerimiz</a>
+                <a href="/blog.html" class="text-ates-gold">Hukuki Blog</a>
+                <a href="/#ekibimiz" class="hover:text-ates-gold transition">Ekibimiz</a>
+                <a href="/#iletisim" class="bg-ates-gold text-white px-6 py-2 rounded hover:bg-white hover:text-ates-navy transition">İletişim</a>
+            </nav>
+            <button id="menu-btn" class="lg:hidden p-2">
+                <span class="block w-6 h-0.5 bg-white mb-1"></span>
+                <span class="block w-6 h-0.5 bg-white mb-1"></span>
+                <span class="block w-6 h-0.5 bg-white"></span>
+            </button>
+        </div>
+        <div id="mobile-menu" class="hidden lg:hidden bg-ates-navy border-t border-ates-gold/30 px-6 pb-6 pt-4">
+            <nav class="flex flex-col space-y-4 text-xs font-semibold uppercase tracking-widest">
+                <a href="/" class="hover:text-ates-gold transition">Ana Sayfa</a>
+                <a href="/#hakkimizda" class="hover:text-ates-gold transition">Biz Kimiz</a>
+                <a href="/#hizmetlerimiz" class="hover:text-ates-gold transition">Hizmetlerimiz</a>
+                <a href="/blog.html" class="text-ates-gold">Hukuki Blog</a>
+                <a href="/#ekibimiz" class="hover:text-ates-gold transition">Ekibimiz</a>
+                <a href="/#iletisim" class="bg-ates-gold text-white px-6 py-3 text-center rounded hover:bg-white hover:text-ates-navy transition">İletişim</a>
+            </nav>
+        </div>
+    </header>
+    <script>
+        document.getElementById('menu-btn').addEventListener('click', () => {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+    </script>
+
+    <!-- HERO -->
+    <section class="bg-ates-navy text-white py-20 border-b-4 border-ates-gold">
+        <div class="container mx-auto px-6 text-center">
+            <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">Ateş Hukuk Bürosu</span>
+            <h1 class="text-4xl md:text-5xl font-bold mt-4 mb-4">Hukuki Blog</h1>
+            <p class="text-gray-300 text-sm max-w-xl mx-auto">Güncel hukuki gelişmeler, Yargıtay kararları ve hak sahiplerine yönelik pratik rehberler.</p>
+        </div>
+    </section>
+
+    <!-- FİLTRE -->
+    <section class="bg-white border-b border-gray-200 py-4 sticky top-16 z-40">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-wrap gap-2" id="filtreler">
+                <button onclick="filtrele('tumu')" class="filtre-btn aktif px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 border-ates-navy bg-ates-navy text-white rounded transition">Tümü</button>
+                <button onclick="filtrele('Ceza Hukuku')" class="filtre-btn px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 border-gray-300 text-gray-600 rounded hover:border-ates-navy hover:text-ates-navy transition">Ceza</button>
+                <button onclick="filtrele('Trafik Hukuku')" class="filtre-btn px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 border-gray-300 text-gray-600 rounded hover:border-ates-navy hover:text-ates-navy transition">Trafik</button>
+                <button onclick="filtrele('Gayrimenkul Hukuku')" class="filtre-btn px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 border-gray-300 text-gray-600 rounded hover:border-ates-navy hover:text-ates-navy transition">Gayrimenkul</button>
+                <button onclick="filtrele('Ticaret Hukuku')" class="filtre-btn px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 border-gray-300 text-gray-600 rounded hover:border-ates-navy hover:text-ates-navy transition">Ticaret</button>
+                <button onclick="filtrele('İş Hukuku')" class="filtre-btn px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 border-gray-300 text-gray-600 rounded hover:border-ates-navy hover:text-ates-navy transition">İş</button>
+                <button onclick="filtrele('Aile Hukuku')" class="filtre-btn px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 border-gray-300 text-gray-600 rounded hover:border-ates-navy hover:text-ates-navy transition">Aile</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- BLOG LİSTESİ -->
+    <section class="py-20">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="blog-grid">
+
+                <!-- KARTLAR BURAYA sync_blog_index.py TARAFINDAN EKLENİR -->
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8" data-kategori="Aile Hukuku">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">Aile Hukuku</span>
+                    <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">Boşanma Davasında Tanık Beyanı</h3>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">Boşanma davalarında tanık beyanının önemi, kabul edilebilirlik şartları ve Yargıtay içtihadı ışığında kapsamlı değerlendirme.</p>
+                    <a href="/blog/bosanma-tanik-beyani.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>
+
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8" data-kategori="Ceza Hukuku">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">Ceza Hukuku</span>
+                    <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">Banka Hesabını Kiralayan Öğrenci: Beraat Kararı</h3>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">Banka hesabını başkasına kiralayan öğrencinin beraat ettiği emsal Yargıtay kararı ve hukuki değerlendirmesi.</p>
+                    <a href="/blog/banka-hesabini-kiralayan-ogrenci-beraat.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>
+
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8" data-kategori="Ceza Hukuku">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">Ceza Hukuku</span>
+                    <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">Ceza Muhakemesinde Tutukluluk ve Tahliye Prosedürü</h3>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">Ceza muhakemesinde tutukluluk kararı nasıl verilir? Tahliye başvurusu nasıl yapılır? Şartlar ve prosedür.</p>
+                    <a href="/blog/ceza-muhakemesinde-tutukluluk-ve-tahliye-proseduru.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>
+
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8" data-kategori="Bilişim Hukuku">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">Bilişim Hukuku</span>
+                    <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">KVKK Veri İhlali Tazminat Hakkı: Nasıl Başvurulur?</h3>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">Kişisel verileriniz ihlal edildi mi? KVKK kapsamında tazminat hakkınızı nasıl kullanacağınızı öğrenin.</p>
+                    <a href="/blog/kvkk-veri-ihlali-tazminat-hakki-nasil-basvurulur.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>
+
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8" data-kategori="Tazminat Hukuku">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">Tazminat Hukuku</span>
+                    <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">Trafik Kazası Tazminatı: Kusur Oranı ve Sigorta Hakları</h3>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">Trafik kazalarında tazminat nasıl hesaplanır? Kusur oranı ve sigorta haklarınız hakkında bilmeniz gerekenler.</p>
+                    <a href="/blog/trafik-kazasi-tazminati-kusur-orani-ve-sigorta-haklari-2024.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>
+
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8" data-kategori="Ticaret Hukuku">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">Ticaret Hukuku</span>
+                    <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">Anonim Şirket Genel Kurul Kararlarının İptali Davası</h3>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">Anonim şirket genel kurul kararlarının iptali davası nasıl açılır? Hangi kararlar iptal edilebilir?</p>
+                    <a href="/blog/anonim-sirket-genel-kurul-kararlarinin-iptali-davasi.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>
+
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8" data-kategori="Gayrimenkul Hukuku">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">Gayrimenkul Hukuku</span>
+                    <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">634 Sayılı KMK'da Arsa Payının Düzeltilmesi Davası</h3>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">Arsa payının düzeltilmesi davası şartları, görevli mahkeme, dava süreci ve Yargıtay kararları.</p>
+                    <a href="/blog/arsa-payinin-duzeltilmesi-davasi.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>
+
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8" data-kategori="Trafik Hukuku">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">Trafik Hukuku</span>
+                    <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">2026 Trafik Ceza Artışları: 200 Bin TL'ye Kadar Cezalar</h3>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">2026 yılında trafik cezalarına yapılan zamlar, yeni ceza tarifeleri ve sürücüleri bekleyen değişiklikler.</p>
+                    <a href="/blog/2026-trafik-ceza-artislari-200-bin-tlye-kadar-cezalar.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>
+
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8" data-kategori="Trafik Hukuku">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">Trafik Hukuku</span>
+                    <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">2026 Trafik Cezaları Reformu: 370.000 TL Ceza ve Ehliyet İptalleri</h3>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">2026 trafik cezaları reformuyla gelen 370.000 TL'ye varan cezalar, ehliyet iptali şartları ve yeni düzenlemeler.</p>
+                    <a href="/blog/2026-trafik-cezalari-reformu-370000-tl-ceza-ve-ehliyet-iptalleri.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>
+
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8" data-kategori="Ticaret Hukuku">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">Ticaret Hukuku</span>
+                    <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">Anonim Şirket Genel Kurul Kararları İptal Davası Rehberi</h3>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">Anonim şirket genel kurul kararlarının iptali davası nasıl açılır? Şartlar, süreç ve Yargıtay kararları.</p>
+                    <a href="/blog/anonim-sirket-genel-kurul-kararlari-iptal-davasi-rehberi.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>
+
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8" data-kategori="Gayrimenkul Hukuku">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">Gayrimenkul Hukuku</span>
+                    <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">Kira Tespit ve Tahliye Davalarında Kiracı Hakları</h3>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">Kira tespit davası nedir, nasıl açılır? Tahliye davalarında kiracının hakları ve korunma yolları.</p>
+                    <a href="/blog/kira-tespit-ve-tahliye-davalarinda-kiraci-haklari.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>
+
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8" data-kategori="İş Hukuku">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">İş Hukuku</span>
+                    <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">Mobbing (İşyeri Psikolojik Tacizi) ve Hukuki Yollar 2024</h3>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">İşyerinde mobbing yaşıyorsanız ne yapmalısınız? Psikolojik tacize karşı hukuki haklarınız ve tazminat yolları.</p>
+                    <a href="/blog/mobbing-isyeri-psikolojik-tacizi-ve-hukuki-yollar-2024.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>
+
+            </div>
+
+            <!-- Hiç kart yoksa -->
+            <div id="bos-mesaj" class="hidden text-center py-20 text-gray-400">
+                <p class="text-lg">Bu kategoride henüz yazı bulunmuyor.</p>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function filtrele(kategori) {
+            const kartlar = document.querySelectorAll('#blog-grid > div[data-kategori]');
+            const bosMsg = document.getElementById('bos-mesaj');
+            const btnler = document.querySelectorAll('.filtre-btn');
+
+            btnler.forEach(b => {
+                b.classList.remove('aktif', 'bg-ates-navy', 'text-white', 'border-ates-navy');
+                b.classList.add('border-gray-300', 'text-gray-600');
+            });
+            event.target.classList.add('aktif', 'bg-ates-navy', 'text-white', 'border-ates-navy');
+            event.target.classList.remove('border-gray-300', 'text-gray-600');
+
+            let gorunen = 0;
+            kartlar.forEach(k => {
+                if (kategori === 'tumu' || k.dataset.kategori === kategori) {
+                    k.style.display = '';
+                    gorunen++;
+                } else {
+                    k.style.display = 'none';
+                }
+            });
+            bosMsg.classList.toggle('hidden', gorunen > 0);
+        }
+    </script>
+
+    <!-- FOOTER -->
+    <footer class="bg-ates-navy text-white pt-20 pb-10 border-t border-gray-800">
+        <div class="container mx-auto px-6 grid md:grid-cols-3 gap-16 text-sm pb-16 border-b border-gray-800">
+            <div>
+                <h4 class="text-3xl font-bold mb-6 tracking-tighter uppercase">ATEŞ HUKUK</h4>
+                <p class="text-gray-400 leading-relaxed italic text-lg">"1969'dan bugüne, hak ve adaletin izinde yarım asrı geride bıraktık."</p>
+            </div>
+            <div>
+                <h4 class="text-ates-gold font-bold mb-6 uppercase tracking-widest">İletişim</h4>
+                <p>Kartal / İstanbul</p>
+                <a href="tel:+905326021201" class="text-xl font-bold mt-4 block hover:text-ates-gold transition">0532 602 12 01</a>
+                <a href="mailto:ibrahimyildirimates@gmail.com" class="mt-2 block text-gray-400 hover:text-ates-gold transition">ibrahimyildirimates@gmail.com</a>
+            </div>
+            <div>
+                <h4 class="text-ates-gold font-bold mb-6 uppercase tracking-widest">Hızlı Linkler</h4>
+                <ul class="space-y-3 uppercase text-[10px] tracking-[0.2em]" style="list-style:none;padding:0">
+                    <li><a href="/#hakkimizda" class="hover:text-ates-gold transition">Kurumsal</a></li>
+                    <li><a href="/#hizmetlerimiz" class="hover:text-ates-gold transition">Faaliyet Alanları</a></li>
+                    <li><a href="/blog.html" class="hover:text-ates-gold transition">Hukuki Blog</a></li>
+                    <li><a href="/#ekibimiz" class="hover:text-ates-gold transition">Kadromuz</a></li>
+                    <li><a href="/#iletisim" class="hover:text-ates-gold transition">İletişim</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="text-center mt-10 text-[10px] text-gray-600 uppercase tracking-[0.5em]">
+            © 2026 ATEŞ HUKUK BÜROSU | KURULUŞ: 1969
+        </div>
+    </footer>
+
+</body>
+</html>
