@@ -17,6 +17,7 @@ jobs:
       - name: Kodu çek
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Python kur
@@ -43,7 +44,12 @@ jobs:
 
       - name: Değişiklikleri kaydet ve yükle
         run: |
-          git add blog/ index.html
-          git diff --staged --quiet || git commit -m "🤖 Blog sync: $(date +'%Y-%m-%d')"
+          git add blog/ index.html blog.html
+          if git diff --staged --quiet; then
+            echo "✅ Değişiklik yok, atlandı."
+            exit 0
+          fi
           git pull --rebase origin main
+          git add blog/ index.html blog.html
+          git commit -m "🤖 Blog sync: $(date +'%Y-%m-%d')"
           git push
