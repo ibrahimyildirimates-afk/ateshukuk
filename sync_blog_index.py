@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """
-blog/ klasöründeki tüm HTML dosyalarını tarar,
-index.html'de kartı olmayanları otomatik ekler.
+blog/ klasöründeki HTML dosyalarını tarar:
+- index.html: sadece son 6 blog kartı gösterir
+- blog.html: tüm blogları ekler (kategori filtreli)
 """
 import os, re
 
 BLOG_DIR = "blog"
 INDEX_FILE = "index.html"
+BLOG_PAGE = "blog.html"
 SKIP_FILES = {"blog-sablon.html"}
+INDEX_LIMIT = 6  # anasayfada gösterilecek max kart
 
 def blog_meta_oku(dosya_yolu):
     try:
@@ -26,60 +29,110 @@ def blog_meta_oku(dosya_yolu):
         print(f"  ⚠️  {dosya_yolu}: {e}")
         return None
 
-def son_kart_sonu(icerik):
-    """Son blog kartının kapanış </div>'inden sonraki pozisyonu döner."""
-    kartlar = list(re.finditer(r'<div class="bg-white blog-card', icerik))
-    if not kartlar:
-        return -1
-    son_kart_start = kartlar[-1].start()
-    return icerik.find('</div>', son_kart_start) + 6
+def insert_point_bul(icerik):
+    """Son blog kartından sonraki noktayı bulur (grid içi)."""
+    blog_start = icerik.find('id="blog"')
+    if blog_start == -1:
+        blog_start = icerik.find('id="blog-grid"')
+    section_end = icerik.find('</section>', blog_start)
+    onceki = icerik[:section_end]
+    son_div = onceki.rfind('</div>')
+    iki_div = onceki.rfind('</div>', 0, son_div)
+    return iki_div + 6
+
+def kart_olustur(slug, meta, data_attr=True):
+    data = f' data-kategori="{meta["kategori"]}"' if data_attr else ''
+    return f"""
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8"{data}>
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">{meta['kategori']}</span>
+                    <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">{meta['baslik']}</h3>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">{meta['ozet']}</p>
+                    <a href="/blog/{slug}" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>"""
+
+def index_guncelle(tum_bloglar):
+    """index.html'de son 6 kartı göster, eskilerini kaldır."""
+    if not os.path.exists(INDEX_FILE):
+        return
+    with open(INDEX_FILE, "r", encoding="utf-8") as f:
+        ic = f.read()
+
+    mevcut = re.findall(r'href="/blog/([^"]+)"', ic)
+    
+    # Yeni blogları ekle
+    yeni = [(s, m) for s, m in tum_bloglar if s not in mevcut]
+    for slug, meta in yeni:
+        insert = insert_point_bul(ic)
+        ic = ic[:insert] + kart_olustur(slug, meta, data_attr=False) + "\n" + ic[insert:]
+
+    # Toplam kart sayısını INDEX_LIMIT'e indir (en eskiyi kaldır)
+    mevcut_guncel = re.findall(r'href="/blog/([^"]+)"', ic)
+    if len(mevcut_guncel) > INDEX_LIMIT:
+        fazla = mevcut_guncel[:len(mevcut_guncel) - INDEX_LIMIT]
+        for slug in fazla:
+            slug_pos = ic.find(f'href="/blog/{slug}"')
+            if slug_pos == -1: continue
+            kart_start = ic.rfind('<div class="bg-white blog-card', 0, slug_pos)
+            pos, depth = kart_start, 0
+            while pos < len(ic):
+                o, c = ic.find('<div', pos), ic.find('</div>', pos)
+                if o != -1 and (c == -1 or o < c):
+                    depth += 1; pos = o + 4
+                else:
+                    depth -= 1
+                    if depth == 0:
+                        ic = ic[:kart_start] + ic[c + 6:]
+                        break
+                    pos = c + 6
+
+    with open(INDEX_FILE, "w", encoding="utf-8") as f:
+        f.write(ic)
+    
+    kalan = re.findall(r'href="/blog/([^"]+)"', ic)
+    print(f"✅ index.html güncellendi — {len(kalan)} kart gösteriliyor.")
+
+def blog_sayfasi_guncelle(tum_bloglar):
+    """blog.html'e eksik kartları ekle."""
+    if not os.path.exists(BLOG_PAGE):
+        print(f"⚠️  {BLOG_PAGE} bulunamadı, atlandı.")
+        return
+    with open(BLOG_PAGE, "r", encoding="utf-8") as f:
+        ic = f.read()
+
+    mevcut = set(re.findall(r'href="/blog/([^"]+)"', ic))
+    eklenen = 0
+    for slug, meta in tum_bloglar:
+        if slug in mevcut:
+            continue
+        insert = insert_point_bul(ic)
+        ic = ic[:insert] + kart_olustur(slug, meta, data_attr=True) + "\n" + ic[insert:]
+        eklenen += 1
+        print(f"  ✅ blog.html'e eklendi: {meta['baslik'][:55]}")
+
+    if eklenen > 0:
+        with open(BLOG_PAGE, "w", encoding="utf-8") as f:
+            f.write(ic)
+        print(f"✅ blog.html güncellendi — {eklenen} yeni kart.")
+    else:
+        print("✅ blog.html zaten güncel.")
 
 def main():
-    if not os.path.exists(BLOG_DIR) or not os.path.exists(INDEX_FILE):
-        print("❌ blog/ veya index.html bulunamadı.")
+    if not os.path.exists(BLOG_DIR):
+        print("❌ blog/ klasörü bulunamadı.")
         return
-
-    with open(INDEX_FILE, "r", encoding="utf-8") as f:
-        icerik = f.read()
-
-    mevcut = set(re.findall(r'href="/blog/([^"]+)"', icerik))
-    print(f"📋 index.html'de {len(mevcut)} kart mevcut.")
 
     dosyalar = sorted([f for f in os.listdir(BLOG_DIR)
                        if f.endswith(".html") and f not in SKIP_FILES])
-    print(f"📂 blog/ klasöründe {len(dosyalar)} dosya var.")
+    print(f"📂 {len(dosyalar)} blog dosyası bulundu.")
 
-    eklenen = 0
+    tum_bloglar = []
     for dosya in dosyalar:
-        if dosya in mevcut:
-            continue
         meta = blog_meta_oku(os.path.join(BLOG_DIR, dosya))
-        if not meta:
-            print(f"  ⚠️  {dosya} atlandı.")
-            continue
+        if meta:
+            tum_bloglar.append((dosya, meta))
 
-        kart = f"""
-                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8">
-                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">{meta['kategori']}</span>
-                    <h4 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">{meta['baslik']}</h4>
-                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">{meta['ozet']}</p>
-                    <a href="/blog/{dosya}" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
-                </div>"""
-
-        insert = son_kart_sonu(icerik)
-        if insert == -1:
-            print("❌ Blog kartı bulunamadı!")
-            return
-        icerik = icerik[:insert] + kart + icerik[insert:]
-        eklenen += 1
-        print(f"  ✅ Eklendi: {meta['baslik'][:60]}")
-
-    if eklenen > 0:
-        with open(INDEX_FILE, "w", encoding="utf-8") as f:
-            f.write(icerik)
-        print(f"\n✅ {eklenen} yeni kart eklendi.")
-    else:
-        print("\n✅ Tüm bloglar zaten index'te.")
+    index_guncelle(tum_bloglar)
+    blog_sayfasi_guncelle(tum_bloglar)
 
 if __name__ == "__main__":
     main()
