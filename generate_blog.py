@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """
 Ateş Hukuk Bürosu — Otomatik Blog Üretici
@@ -202,19 +201,24 @@ def html_olustur(data: dict, kategori: str, slug: str, tarih: datetime.date) -> 
 
     sss_html = ""
     sss_schema = []
-    for s in data["sss"]:
+    for s in data.get("sss", []):
+        # API bazen farklı key adları döndürebilir — normalize et
+        soru = s.get("soru") or s.get("question") or s.get("q") or list(s.values())[0] if s else ""
+        cevap = s.get("cevap") or s.get("answer") or s.get("a") or (list(s.values())[1] if len(s) > 1 else "")
+        if not soru:
+            continue
         sss_html += f"""
                             <div class="faq-item">
                                 <div class="faq-question" onclick="toggleFaq(this)">
-                                    <span>{s["soru"]}</span>
+                                    <span>{soru}</span>
                                     <span class="faq-icon text-ates-gold text-xl">+</span>
                                 </div>
-                                <div class="faq-answer">{s["cevap"]}</div>
+                                <div class="faq-answer">{cevap}</div>
                             </div>"""
         sss_schema.append({
             "@type": "Question",
-            "name": s["soru"],
-            "acceptedAnswer": {"@type": "Answer", "text": s["cevap"]}
+            "name": soru,
+            "acceptedAnswer": {"@type": "Answer", "text": cevap}
         })
 
     iso_tarih = tarih.strftime("%Y-%m-%dT09:00:00+03:00")
@@ -516,6 +520,72 @@ def index_guncelle(index_yolu: str, data: dict, kategori: str, slug: str):
         f.write(yeni_icerik)
     print(f"✅ index.html güncellendi — yeni kart blog section'a eklendi.")
 
+# ── blog.html blog kartı ekle ────────────────────────────────────────────────
+
+def blog_sayfasi_guncelle(blog_yolu: str, data: dict, kategori: str, dosya_adi: str):
+    """blog.html'deki id='blog-grid' div'ine yeni kartı ekler (zaten varsa atlar)."""
+    with open(blog_yolu, "r", encoding="utf-8") as f:
+        icerik = f.read()
+
+    # Zaten ekliyse atla
+    if f'href="/blog/{dosya_adi}"' in icerik:
+        print(f"✅ blog.html zaten güncel — kart mevcut.")
+        return
+
+    ozet = data["ozet"][:160] + ("…" if len(data["ozet"]) > 160 else "")
+
+    yeni_kart = f"""
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8" data-kategori="{kategori}">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">{kategori}</span>
+                    <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">{data["baslik"]}</h3>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">{ozet}</p>
+                    <a href="/blog/{dosya_adi}" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>"""
+
+    # id="blog-grid" div'ini bul ve içine ekle
+    grid_id = 'id="blog-grid"'
+    grid_pos = icerik.find(grid_id)
+    if grid_pos == -1:
+        print('⚠️  id="blog-grid" bulunamadı! blog.html güncellenemedi.')
+        return
+
+    # Grid div'inin açılış > işaretini bul
+    acilis = icerik.find('>', grid_pos)
+    if acilis == -1:
+        print("⚠️  blog-grid açılış etiketi bulunamadı!")
+        return
+
+    # Kartı grid'in hemen içine (ilk çocuk olarak) ekle
+    yeni_icerik = icerik[:acilis + 1] + yeni_kart + "\n" + icerik[acilis + 1:]
+
+    with open(blog_yolu, "w", encoding="utf-8") as f:
+        f.write(yeni_icerik)
+    print(f"✅ blog.html güncellendi — '{data['baslik'][:50]}' eklendi.")
+
+    # Kategori filtre butonunu da ekle (yoksa)
+    blog_filtre_guncelle(blog_yolu, kategori)
+
+def blog_filtre_guncelle(blog_yolu: str, kategori: str):
+    """blog.html filtre butonlarına yeni kategori yoksa ekler."""
+    with open(blog_yolu, "r", encoding="utf-8") as f:
+        icerik = f.read()
+
+    # Zaten var mı?
+    if f"filtrele('{kategori}')" in icerik:
+        return
+
+    yeni_buton = f'\n                <button onclick="filtrele(\'{kategori}\')" class="filtre-btn px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 border-gray-300 text-gray-600 rounded hover:border-ates-navy hover:text-ates-navy transition">{kategori.replace(" Hukuku","").replace(" Kararları","")}</button>'
+
+    filtreler_div = 'id="filtreler"'
+    pos = icerik.find(filtreler_div)
+    if pos == -1:
+        return
+    acilis = icerik.find('>', pos)
+    yeni_icerik = icerik[:acilis + 1] + yeni_buton + icerik[acilis + 1:]
+    with open(blog_yolu, "w", encoding="utf-8") as f:
+        f.write(yeni_icerik)
+    print(f"✅ blog.html filtre butonu eklendi: {kategori}")
+
 # ── Ana akış ─────────────────────────────────────────────────────────────────
 
 def yargitay_ictihat_uret() -> dict:
@@ -605,5 +675,12 @@ if __name__ == "__main__":
         index_guncelle(index_yolu, data, kategori, slug)
     else:
         print(f"⚠️  index.html bulunamadı ({index_yolu}), kart eklenemedi.")
+
+    # blog.html güncelle
+    blog_sayfa_yolu = "blog.html"
+    if os.path.exists(blog_sayfa_yolu):
+        blog_sayfasi_guncelle(blog_sayfa_yolu, data, kategori, dosya_adi)
+    else:
+        print(f"⚠️  blog.html bulunamadı, kart eklenemedi.")
 
     print(f"\n🎉 Tamamlandı! → blog/{dosya_adi}")
