@@ -31,6 +31,24 @@ def blog_meta_oku(dosya_yolu):
 
 def insert_point_bul(icerik):
     """Grid div kapanışını depth sayarak bulur, oraya ekle."""
+    # blog.html'de id="blog-grid", index.html'de id="blog" — ikisini de dene
+    blog_start = icerik.find('id="blog-grid"')
+    if blog_start != -1:
+        # blog-grid div'inin açılış > işaretini bul, kapanışını bul
+        acilis = icerik.find('>', blog_start)
+        pos, depth = blog_start, 0
+        while pos < len(icerik):
+            o = icerik.find('<div', pos)
+            c = icerik.find('</div>', pos)
+            if o != -1 and (c == -1 or o < c):
+                depth += 1; pos = o + 4
+            else:
+                depth -= 1
+                if depth == 0:
+                    return c
+                pos = c + 6
+        return -1
+
     blog_start = icerik.find('id="blog"')
     grid_start = icerik.find('class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3', blog_start)
     if grid_start == -1:
@@ -114,8 +132,30 @@ def blog_sayfasi_guncelle(tum_bloglar):
     for slug, meta in tum_bloglar:
         if slug in mevcut:
             continue
-        insert = insert_point_bul(ic)
-        ic = ic[:insert] + kart_olustur(slug, meta, data_attr=True) + "\n                " + ic[insert:]
+
+        # blog.html için id="blog-grid" div'inin açılışından sonra ekle
+        grid_id = 'id="blog-grid"'
+        grid_pos = ic.find(grid_id)
+        if grid_pos != -1:
+            acilis = ic.find('>', grid_pos)
+            kart = kart_olustur(slug, meta, data_attr=True)
+            ic = ic[:acilis + 1] + "\n" + kart + ic[acilis + 1:]
+        else:
+            # Fallback: insert_point_bul ile grid kapanışından önce ekle
+            insert = insert_point_bul(ic)
+            if insert == -1:
+                print(f"  ⚠️  Ekleme noktası bulunamadı: {slug}")
+                continue
+            ic = ic[:insert] + kart_olustur(slug, meta, data_attr=True) + "\n                " + ic[insert:]
+
+        # Kategori filtre butonunu da ekle (yoksa)
+        filtreler_pos = ic.find('id="filtreler"')
+        if filtreler_pos != -1 and f"filtrele('{meta['kategori']}')" not in ic:
+            filtreler_acilis = ic.find('>', filtreler_pos)
+            kisa_kat = meta['kategori'].replace(" Hukuku","").replace(" Kararları","")
+            yeni_buton = f'\n                <button onclick="filtrele(\'{meta["kategori"]}\')" class="filtre-btn px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 border-gray-300 text-gray-600 rounded hover:border-ates-navy hover:text-ates-navy transition">{kisa_kat}</button>'
+            ic = ic[:filtreler_acilis + 1] + yeni_buton + ic[filtreler_acilis + 1:]
+
         eklenen += 1
         print(f"  ✅ blog.html'e eklendi: {meta['baslik'][:55]}")
 
