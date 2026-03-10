@@ -78,6 +78,7 @@
     <section class="bg-white border-b border-gray-200 py-4 sticky top-16 z-40">
         <div class="container mx-auto px-6">
             <div class="flex flex-wrap gap-2" id="filtreler">
+                <button onclick="filtrele('İcra Hukuku')" class="filtre-btn px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 border-gray-300 text-gray-600 rounded hover:border-ates-navy hover:text-ates-navy transition">İcra</button>
                 <button onclick="filtrele('tumu')" class="filtre-btn aktif px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 border-ates-navy bg-ates-navy text-white rounded transition">Tümü</button>
                 <button onclick="filtrele('Ceza Hukuku')" class="filtre-btn px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 border-gray-300 text-gray-600 rounded hover:border-ates-navy hover:text-ates-navy transition">Ceza</button>
                 <button onclick="filtrele('Trafik Hukuku')" class="filtre-btn px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 border-gray-300 text-gray-600 rounded hover:border-ates-navy hover:text-ates-navy transition">Trafik</button>
@@ -94,6 +95,13 @@
     <section class="py-20">
         <div class="container mx-auto px-6">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="blog-grid">
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8" data-kategori="İcra Hukuku">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">İcra Hukuku</span>
+                    <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">İcra Takibinde Borçlunun İtiraz Hakkı ve Durdurma Süreçleri</h3>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">İcra takibine itiraz etme, borcun durdurulması ve hak kaybına uğramadan izlemeniz gereken süreçler hakkında detaylı bilgiler.</p>
+                    <a href="/blog/icra-takibinde-borclunun-itiraz-hakki-ve-durdurma-surecleri.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>
+
                 <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8" data-kategori="İş Hukuku">
                     <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">İş Hukuku</span>
                     <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">Yargıtay 9. HD: Sözleşmede Sadece Son Sayfanın İmzalanması Yeterlidir</h3>
