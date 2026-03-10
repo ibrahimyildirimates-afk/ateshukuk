@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """
 blog/ klasöründeki HTML dosyalarını tarar:
-- index.html: sadece son 6 blog kartı gösterir
-- blog.html: tüm blogları ekler (kategori filtreli)
+- index.html: sadece son 6 blog kartı gösterir  (id="blog" section içindeki grid)
+- blog.html:  tüm blogları ekler               (id="blog-grid" div içine)
 """
 import os, re
 
-BLOG_DIR = "blog"
+BLOG_DIR   = "blog"
 INDEX_FILE = "index.html"
-BLOG_PAGE = "blog.html"
+BLOG_PAGE  = "blog.html"
 SKIP_FILES = {"blog-sablon.html"}
 INDEX_LIMIT = 6  # anasayfada gösterilecek max kart
+
+# ── Meta okuma ────────────────────────────────────────────────────────────────
 
 def blog_meta_oku(dosya_yolu):
     try:
@@ -29,135 +31,130 @@ def blog_meta_oku(dosya_yolu):
         print(f"  ⚠️  {dosya_yolu}: {e}")
         return None
 
-def insert_point_bul(icerik):
-    """Grid div kapanışını depth sayarak bulur, oraya ekle."""
-    # blog.html'de id="blog-grid", index.html'de id="blog" — ikisini de dene
-    blog_start = icerik.find('id="blog-grid"')
-    if blog_start != -1:
-        # blog-grid div'inin açılış > işaretini bul, kapanışını bul
-        acilis = icerik.find('>', blog_start)
-        pos, depth = blog_start, 0
-        while pos < len(icerik):
-            o = icerik.find('<div', pos)
-            c = icerik.find('</div>', pos)
-            if o != -1 and (c == -1 or o < c):
-                depth += 1; pos = o + 4
-            else:
-                depth -= 1
-                if depth == 0:
-                    return c
-                pos = c + 6
-        return -1
-
-    blog_start = icerik.find('id="blog"')
-    grid_start = icerik.find('class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3', blog_start)
-    if grid_start == -1:
-        return -1
-    # <div'in başına git
-    div_start = icerik.rfind('<div', 0, grid_start)
-    pos, depth = div_start, 0
-    while pos < len(icerik):
-        o = icerik.find('<div', pos)
-        c = icerik.find('</div>', pos)
-        if o != -1 and (c == -1 or o < c):
-            depth += 1; pos = o + 4
-        else:
-            depth -= 1
-            if depth == 0:
-                return c  # grid kapanışının başı
-            pos = c + 6
-    return -1
+# ── Kart HTML üretimi ─────────────────────────────────────────────────────────
 
 def kart_olustur(slug, meta, data_attr=True):
     data = f' data-kategori="{meta["kategori"]}"' if data_attr else ''
-    return f"""
-                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8"{data}>
-                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">{meta['kategori']}</span>
-                    <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">{meta['baslik']}</h3>
-                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">{meta['ozet']}</p>
-                    <a href="/blog/{slug}" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
-                </div>"""
+    return (
+        f'\n                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8"{data}>\n'
+        f'                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">{meta["kategori"]}</span>\n'
+        f'                    <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">{meta["baslik"]}</h3>\n'
+        f'                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">{meta["ozet"]}</p>\n'
+        f'                    <a href="/blog/{slug}" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>\n'
+        f'                </div>'
+    )
+
+# ── index.html güncelle ───────────────────────────────────────────────────────
+
+def _index_grid_sinirlar(ic):
+    """
+    index.html'deki blog grid div'inin (acilis '>' pos, kapanış '</div>' pos) döndür.
+    """
+    blog_sec = ic.find('id="blog"')
+    if blog_sec == -1:
+        return -1, -1
+    grid_attr = ic.find('class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3', blog_sec)
+    if grid_attr == -1:
+        return -1, -1
+    acilis = ic.find('>', grid_attr)
+    if acilis == -1:
+        return -1, -1
+    div_baslangic = ic.rfind('<div', blog_sec, grid_attr + 1)
+    depth = 0
+    i = div_baslangic
+    while i < len(ic):
+        o = ic.find('<div', i)
+        c = ic.find('</div>', i)
+        if o != -1 and (c == -1 or o < c):
+            depth += 1; i = o + 4
+        else:
+            if c == -1: break
+            depth -= 1
+            if depth == 0:
+                return acilis, c
+            i = c + 6
+    return acilis, -1
 
 def index_guncelle(tum_bloglar):
-    """index.html'de son 6 kartı göster, eskilerini kaldır."""
     if not os.path.exists(INDEX_FILE):
+        print(f"⚠️  {INDEX_FILE} bulunamadı.")
         return
     with open(INDEX_FILE, "r", encoding="utf-8") as f:
         ic = f.read()
 
-    mevcut = re.findall(r'href="/blog/([^"]+)"', ic)
-    
-    # Yeni blogları ekle
-    yeni = [(s, m) for s, m in tum_bloglar if s not in mevcut]
-    for slug, meta in yeni:
-        insert = insert_point_bul(ic)
-        ic = ic[:insert] + kart_olustur(slug, meta, data_attr=False) + "\n                " + ic[insert:]
+    acilis, kapan = _index_grid_sinirlar(ic)
+    if acilis == -1 or kapan == -1:
+        print("⚠️  index.html'de blog grid bulunamadı!")
+        return
 
-    # Toplam kart sayısını INDEX_LIMIT'e indir (en eskiyi kaldır)
-    mevcut_guncel = re.findall(r'href="/blog/([^"]+)"', ic)
-    if len(mevcut_guncel) > INDEX_LIMIT:
-        fazla = mevcut_guncel[:len(mevcut_guncel) - INDEX_LIMIT]
-        for slug in fazla:
-            slug_pos = ic.find(f'href="/blog/{slug}"')
-            if slug_pos == -1: continue
-            kart_start = ic.rfind('<div class="bg-white blog-card', 0, slug_pos)
-            pos, depth = kart_start, 0
-            while pos < len(ic):
-                o, c = ic.find('<div', pos), ic.find('</div>', pos)
-                if o != -1 and (c == -1 or o < c):
-                    depth += 1; pos = o + 4
-                else:
-                    depth -= 1
-                    if depth == 0:
-                        ic = ic[:kart_start] + ic[c + 6:]
-                        break
-                    pos = c + 6
+    grid_ic = ic[acilis + 1 : kapan]
+    mevcut_sluglar = re.findall(r'href="/blog/([^"]+)"', grid_ic)
 
+    yeni = [(s, m) for s, m in tum_bloglar if s not in mevcut_sluglar]
+    for slug, meta in reversed(yeni):
+        grid_ic = kart_olustur(slug, meta, data_attr=False) + "\n" + grid_ic
+
+    tum_sluglar = re.findall(r'href="/blog/([^"]+)"', grid_ic)
+    if len(tum_sluglar) > INDEX_LIMIT:
+        kaldir = tum_sluglar[INDEX_LIMIT:]
+        for slug in kaldir:
+            pattern = (
+                r'\s*<div class="bg-white blog-card[^>]*>\s*(?:.*?)'
+                rf'href="/blog/{re.escape(slug)}"(?:.*?)</div>'
+            )
+            grid_ic = re.sub(pattern, '', grid_ic, count=1, flags=re.DOTALL)
+
+    yeni_ic = ic[:acilis + 1] + grid_ic + ic[kapan:]
     with open(INDEX_FILE, "w", encoding="utf-8") as f:
-        f.write(ic)
-    
-    kalan = re.findall(r'href="/blog/([^"]+)"', ic)
+        f.write(yeni_ic)
+    kalan = re.findall(r'href="/blog/([^"]+)"', grid_ic)
     print(f"✅ index.html güncellendi — {len(kalan)} kart gösteriliyor.")
 
+# ── blog.html güncelle ────────────────────────────────────────────────────────
+
 def blog_sayfasi_guncelle(tum_bloglar):
-    """blog.html'e eksik kartları ekle."""
     if not os.path.exists(BLOG_PAGE):
         print(f"⚠️  {BLOG_PAGE} bulunamadı, atlandı.")
         return
     with open(BLOG_PAGE, "r", encoding="utf-8") as f:
         ic = f.read()
 
+    grid_id_pos = ic.find('id="blog-grid"')
+    if grid_id_pos == -1:
+        print('⚠️  blog.html\'de id="blog-grid" bulunamadı!')
+        return
+    acilis = ic.find('>', grid_id_pos)
+    if acilis == -1:
+        return
+
     mevcut = set(re.findall(r'href="/blog/([^"]+)"', ic))
     eklenen = 0
-    for slug, meta in tum_bloglar:
+
+    for slug, meta in reversed(tum_bloglar):
         if slug in mevcut:
             continue
-
-        # blog.html için id="blog-grid" div'inin açılışından sonra ekle
-        grid_id = 'id="blog-grid"'
-        grid_pos = ic.find(grid_id)
-        if grid_pos != -1:
-            acilis = ic.find('>', grid_pos)
-            kart = kart_olustur(slug, meta, data_attr=True)
-            ic = ic[:acilis + 1] + "\n" + kart + ic[acilis + 1:]
-        else:
-            # Fallback: insert_point_bul ile grid kapanışından önce ekle
-            insert = insert_point_bul(ic)
-            if insert == -1:
-                print(f"  ⚠️  Ekleme noktası bulunamadı: {slug}")
-                continue
-            ic = ic[:insert] + kart_olustur(slug, meta, data_attr=True) + "\n                " + ic[insert:]
-
-        # Kategori filtre butonunu da ekle (yoksa)
-        filtreler_pos = ic.find('id="filtreler"')
-        if filtreler_pos != -1 and f"filtrele('{meta['kategori']}')" not in ic:
-            filtreler_acilis = ic.find('>', filtreler_pos)
-            kisa_kat = meta['kategori'].replace(" Hukuku","").replace(" Kararları","")
-            yeni_buton = f'\n                <button onclick="filtrele(\'{meta["kategori"]}\')" class="filtre-btn px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 border-gray-300 text-gray-600 rounded hover:border-ates-navy hover:text-ates-navy transition">{kisa_kat}</button>'
-            ic = ic[:filtreler_acilis + 1] + yeni_buton + ic[filtreler_acilis + 1:]
-
+        yeni_kart = kart_olustur(slug, meta, data_attr=True)
+        ic = ic[:acilis + 1] + yeni_kart + "\n" + ic[acilis + 1:]
+        # Pozisyonu yenile
+        acilis = ic.find('>', ic.find('id="blog-grid"'))
+        mevcut.add(slug)
         eklenen += 1
         print(f"  ✅ blog.html'e eklendi: {meta['baslik'][:55]}")
+
+        # Kategori filtre butonu yoksa ekle
+        if f"filtrele('{meta['kategori']}')" not in ic:
+            filtre_pos = ic.find('id="filtreler"')
+            if filtre_pos != -1:
+                filtre_acilis = ic.find('>', filtre_pos)
+                kisa = meta['kategori'].replace(' Hukuku','').replace(' Kararları','')
+                buton = (
+                    f'\n                <button onclick="filtrele(\'{meta["kategori"]}\')" '
+                    f'class="filtre-btn px-4 py-2 text-xs font-bold uppercase tracking-wider '
+                    f'border-2 border-gray-300 text-gray-600 rounded hover:border-ates-navy '
+                    f'hover:text-ates-navy transition">{kisa}</button>'
+                )
+                ic = ic[:filtre_acilis + 1] + buton + ic[filtre_acilis + 1:]
+                print(f"  ✅ Filtre butonu eklendi: {meta['kategori']}")
 
     if eklenen > 0:
         with open(BLOG_PAGE, "w", encoding="utf-8") as f:
@@ -166,21 +163,20 @@ def blog_sayfasi_guncelle(tum_bloglar):
     else:
         print("✅ blog.html zaten güncel.")
 
+# ── Ana akış ─────────────────────────────────────────────────────────────────
+
 def main():
     if not os.path.exists(BLOG_DIR):
         print("❌ blog/ klasörü bulunamadı.")
         return
-
     dosyalar = sorted([f for f in os.listdir(BLOG_DIR)
                        if f.endswith(".html") and f not in SKIP_FILES])
     print(f"📂 {len(dosyalar)} blog dosyası bulundu.")
-
     tum_bloglar = []
     for dosya in dosyalar:
         meta = blog_meta_oku(os.path.join(BLOG_DIR, dosya))
         if meta:
             tum_bloglar.append((dosya, meta))
-
     index_guncelle(tum_bloglar)
     blog_sayfasi_guncelle(tum_bloglar)
 
