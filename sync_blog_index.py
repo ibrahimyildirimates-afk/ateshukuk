@@ -10,7 +10,7 @@ BLOG_DIR   = "blog"
 INDEX_FILE = "index.html"
 BLOG_PAGE  = "blog.html"
 SKIP_FILES = {"blog-sablon.html"}
-INDEX_LIMIT = 6  # anasayfada gösterilecek max kart
+INDEX_LIMIT = 6
 
 # ── Meta okuma ────────────────────────────────────────────────────────────────
 
@@ -48,7 +48,8 @@ def kart_olustur(slug, meta, data_attr=True):
 
 def _index_grid_sinirlar(ic):
     """
-    index.html'deki blog grid div'inin (acilis '>' pos, kapanış '</div>' pos) döndür.
+    index.html'deki blog grid'inin açılış '>' ve kapanış '</div>' pozisyonlarını döndür.
+    Güvenli yöntem: grid class'ını bul, açılış '>'den itibaren depth say.
     """
     blog_sec = ic.find('id="blog"')
     if blog_sec == -1:
@@ -59,16 +60,19 @@ def _index_grid_sinirlar(ic):
     acilis = ic.find('>', grid_attr)
     if acilis == -1:
         return -1, -1
-    div_baslangic = ic.rfind('<div', blog_sec, grid_attr + 1)
-    depth = 0
-    i = div_baslangic
+
+    # Depth counting: açılış '>'DEN SONRA başla (div içeriğinden)
+    depth = 1  # Grid div'inin kendisi zaten açık
+    i = acilis + 1
     while i < len(ic):
         o = ic.find('<div', i)
         c = ic.find('</div>', i)
         if o != -1 and (c == -1 or o < c):
-            depth += 1; i = o + 4
+            depth += 1
+            i = o + 4
         else:
-            if c == -1: break
+            if c == -1:
+                break
             depth -= 1
             if depth == 0:
                 return acilis, c
@@ -94,6 +98,7 @@ def index_guncelle(tum_bloglar):
     for slug, meta in reversed(yeni):
         grid_ic = kart_olustur(slug, meta, data_attr=False) + "\n" + grid_ic
 
+    # INDEX_LIMIT'e indir
     tum_sluglar = re.findall(r'href="/blog/([^"]+)"', grid_ic)
     if len(tum_sluglar) > INDEX_LIMIT:
         kaldir = tum_sluglar[INDEX_LIMIT:]
@@ -135,13 +140,11 @@ def blog_sayfasi_guncelle(tum_bloglar):
             continue
         yeni_kart = kart_olustur(slug, meta, data_attr=True)
         ic = ic[:acilis + 1] + yeni_kart + "\n" + ic[acilis + 1:]
-        # Pozisyonu yenile
         acilis = ic.find('>', ic.find('id="blog-grid"'))
         mevcut.add(slug)
         eklenen += 1
         print(f"  ✅ blog.html'e eklendi: {meta['baslik'][:55]}")
 
-        # Kategori filtre butonu yoksa ekle
         if f"filtrele('{meta['kategori']}')" not in ic:
             filtre_pos = ic.find('id="filtreler"')
             if filtre_pos != -1:
