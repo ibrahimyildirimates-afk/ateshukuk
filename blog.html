@@ -78,6 +78,7 @@
     <section class="bg-white border-b border-gray-200 py-4 sticky top-16 z-40">
         <div class="container mx-auto px-6">
             <div class="flex flex-wrap gap-2" id="filtreler">
+                <button onclick="filtrele('Hukuki Blog')" class="filtre-btn px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 border-gray-300 text-gray-600 rounded hover:border-ates-navy hover:text-ates-navy transition">Hukuki Blog</button>
                 <button onclick="filtrele('İcra Hukuku')" class="filtre-btn px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 border-gray-300 text-gray-600 rounded hover:border-ates-navy hover:text-ates-navy transition">İcra</button>
                 <button onclick="filtrele('tumu')" class="filtre-btn aktif px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 border-ates-navy bg-ates-navy text-white rounded transition">Tümü</button>
                 <button onclick="filtrele('Ceza Hukuku')" class="filtre-btn px-4 py-2 text-xs font-bold uppercase tracking-wider border-2 border-gray-300 text-gray-600 rounded hover:border-ates-navy hover:text-ates-navy transition">Ceza</button>
@@ -95,6 +96,13 @@
     <section class="py-20">
         <div class="container mx-auto px-6">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="blog-grid">
+                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8" data-kategori="Hukuki Blog">
+                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">Hukuki Blog</span>
+                    <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">Mâlik Olmayan Eşin Mal Rejimi Sona Erdikten Sonraki Kredi Ödemesi Değer Artış Payı Alacağıdır</h3>
+                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">Yargıtay 2. Hukuk Dairesi'nin 2025/6168 sayılı kararı: Mâlik olmayan eşin, mal rejiminin sona erdiği tarihten sonra yaptığı kredi ödemeleri değer artış payı ala</p>
+                    <a href="/blog/malik-olmayan-esin-deger-artis-payi-alacagi.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
+                </div>
+
                 <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8" data-kategori="Aile Hukuku">
                     <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">Aile Hukuku</span>
                     <h3 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">Ziynet Alacağından Açıkça Feragat Edilmedikçe Yeniden Dava Açılabilir</h3>
