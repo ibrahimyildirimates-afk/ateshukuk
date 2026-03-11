@@ -17,15 +17,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Index'i senkronize et
-        run: python sync_blog_index.py
       - name: Git ayarla
         run: |
           git config user.name "Ateş Hukuk Blog Bot"
           git config user.email "bot@noreply.com"
+          git pull --rebase origin main
+      - name: Index'i senkronize et
+        run: python sync_blog_index.py
       - name: Değişiklikleri kaydet ve yükle
         run: |
-          git pull --rebase origin main
           git add index.html blog.html
           if git diff --staged --quiet; then
             echo "✅ Değişiklik yok."
