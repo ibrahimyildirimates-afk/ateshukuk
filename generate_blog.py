@@ -479,46 +479,74 @@ def html_olustur(data: dict, kategori: str, slug: str, tarih: datetime.date) -> 
 # ── index.html blog kartı ekle ────────────────────────────────────────────────
 
 def index_guncelle(index_yolu: str, data: dict, kategori: str, slug: str):
+    import re as _re
+    INDEX_LIMIT = 6
+
     with open(index_yolu, "r", encoding="utf-8") as f:
         icerik = f.read()
 
+    # Zaten ekliyse atla
+    if f'href="/blog/{slug}.html"' in icerik:
+        print(f"✅ index.html zaten güncel — {slug} mevcut.")
+        return
+
     ozet = data["ozet"][:160] + ("…" if len(data["ozet"]) > 160 else "")
 
-    yeni_kart = f"""                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8">
-                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">{kategori}</span>
-                    <h4 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">{data["baslik"]}</h4>
-                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">{ozet}</p>
-                    <a href="/blog/{slug}.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>
-                </div>"""
+    yeni_kart = (
+        '                <div class="bg-white blog-card shadow-lg border-t-4 border-ates-navy p-8">\n'
+        f'                    <span class="text-ates-gold text-[10px] font-bold uppercase tracking-widest">{kategori}</span>\n'
+        f'                    <h4 class="text-xl font-bold mt-2 mb-4 text-ates-navy leading-tight">{data["baslik"]}</h4>\n'
+        f'                    <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">{ozet}</p>\n'
+        f'                    <a href="/blog/{slug}.html" class="text-ates-navy font-bold text-xs uppercase border-b border-ates-gold">Devamı →</a>\n'
+        '                </div>'
+    )
 
-    # id="blog" section'ını bul, içindeki son </div></div></section> bloğundan önce ekle
-    import re
-    # Blog section başlangıcını bul
-    blog_start = icerik.find('id="blog"')
-    if blog_start == -1:
-        print("⚠️  id=\"blog\" bulunamadı!")
-        return
+    # Grid sınırlarını depth-counting ile güvenli bul
+    blog_sec = icerik.find('id="blog"')
+    if blog_sec == -1:
+        print("⚠️  id=\"blog\" bulunamadı!"); return
+    grid_attr = icerik.find('class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3', blog_sec)
+    if grid_attr == -1:
+        print("⚠️  Blog grid bulunamadı!"); return
+    acilis = icerik.find('>', grid_attr)
 
-    # Blog section'ından sonraki ilk </section> kapanışını bul
-    section_end = icerik.find('</section>', blog_start)
-    if section_end == -1:
-        print("⚠️  Blog section kapanışı bulunamadı!")
-        return
+    depth = 1
+    i = acilis + 1
+    grid_close = -1
+    while i < len(icerik):
+        o = icerik.find('<div', i)
+        c = icerik.find('</div>', i)
+        if o != -1 and (c == -1 or o < c):
+            depth += 1; i = o + 4
+        else:
+            if c == -1: break
+            depth -= 1
+            if depth == 0: grid_close = c; break
+            i = c + 6
 
-    # O </section>'dan önceki son </div></div> bloğunu bul ve kartı oraya ekle
-    onceki_icerik = icerik[:section_end]
-    # Son grid div kapanışını bul
-    son_div = onceki_icerik.rfind('</div>')
-    if son_div == -1:
-        print("⚠️  Grid kapanışı bulunamadı!")
-        return
+    if grid_close == -1:
+        print("⚠️  Grid kapanışı bulunamadı!"); return
 
-    # Kartı son </div>'den önce ekle
-    yeni_icerik = icerik[:son_div] + yeni_kart + "\n            " + icerik[son_div:]
+    # Grid içeriğini al, yeni kartı en başa ekle
+    grid_ic = icerik[acilis + 1 : grid_close]
+    grid_ic = "\n" + yeni_kart + "\n" + grid_ic
+
+    # INDEX_LIMIT aşılıyorsa sondan kırp
+    sluglar = _re.findall(r'href="/blog/([^"]+)"', grid_ic)
+    if len(sluglar) > INDEX_LIMIT:
+        for eski_slug in sluglar[INDEX_LIMIT:]:
+            pat = (
+                r'\s*<div class="bg-white blog-card[^>]*>\s*(?:.*?)' +
+                rf'href="/blog/{_re.escape(eski_slug)}"(?:.*?)</div>'
+            )
+            grid_ic = _re.sub(pat, '', grid_ic, count=1, flags=_re.DOTALL)
+
+    yeni_icerik = icerik[:acilis + 1] + grid_ic + icerik[grid_close:]
 
     with open(index_yolu, "w", encoding="utf-8") as f:
         f.write(yeni_icerik)
-    print(f"✅ index.html güncellendi — yeni kart blog section'a eklendi.")
+    kalan = _re.findall(r'href="/blog/([^"]+)"', grid_ic)
+    print(f"✅ index.html güncellendi — {len(kalan)} kart gösteriliyor.")
 
 # ── blog.html blog kartı ekle ────────────────────────────────────────────────
 
